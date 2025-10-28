@@ -200,7 +200,7 @@ export class GameManager {
             // taiyou-si-ruを追加
             const newItem = {
                 id: 'taiyou-si-ru',
-                imgSrc: '/images/nazo.png',
+                imgSrc: './images/nazo.png',
                 description: '太陽おじさんからもらった太陽シール。何かに使えそうだ。'
             };
             
@@ -225,7 +225,7 @@ export class GameManager {
             const content = `
                 <div class="p-4">
                     <h3 class="text-xl font-bold mb-4">太陽おじさん</h3>
-                    <img src="/images/nazo.png" alt="太陽おじさん" class="w-48 h-48 mx-auto mb-4 rounded">
+                    <img src="./images/nazo.png" alt="太陽おじさん" class="w-48 h-48 mx-auto mb-4 rounded">
                     <p class="text-gray-700">記入済みの申込書をくれれば、太陽シールをあげよう。</p>
                 </div>
             `;
