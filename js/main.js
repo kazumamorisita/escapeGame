@@ -159,8 +159,8 @@ async function AppInit() {
                         <!-- シール選択 -->
                         <div class="mb-4">
                             <p class="text-sm font-bold mb-2">配置するシール:</p>
-                            <div class="flex justify-center gap-4">
-                                <button id="select-sun" class="w-16 h-16 bg-yellow-400 text-4xl rounded-lg hover:bg-yellow-500 active:scale-95 transition border-2 border-transparent" data-seal="sun">☀️</button>
+                            <div id="seal-selection" class="flex justify-center gap-4">
+                                <!-- 太陽シールは所持時のみ表示（JavaScriptで動的に追加） -->
                                 <button id="select-moon" class="w-16 h-16 bg-blue-400 text-4xl rounded-lg hover:bg-blue-500 active:scale-95 transition border-2 border-transparent" data-seal="moon">🌙</button>
                                 <button id="remove-seal" class="w-16 h-16 bg-gray-400 text-2xl rounded-lg hover:bg-gray-500 active:scale-95 transition" data-seal="">✕</button>
                             </div>
@@ -186,6 +186,24 @@ async function AppInit() {
                         let selectedSeal = '';
                         let currentLeftSeal = null;
                         let currentRightSeal = 'moon'; // 初期状態
+                        
+                        // 太陽シール所持チェック & 動的にボタンを追加
+                        const sealSelection = document.getElementById('seal-selection');
+                        const hasSunSeal = inventoryManager.hasItem('taiyou-si-ru');
+                        
+                        if (hasSunSeal && sealSelection) {
+                            // 太陽シールボタンを月シールの前に挿入
+                            const sunButton = document.createElement('button');
+                            sunButton.id = 'select-sun';
+                            sunButton.className = 'w-16 h-16 bg-yellow-400 text-4xl rounded-lg hover:bg-yellow-500 active:scale-95 transition border-2 border-transparent';
+                            sunButton.setAttribute('data-seal', 'sun');
+                            sunButton.textContent = '☀️';
+                            
+                            const moonButton = document.getElementById('select-moon');
+                            if (moonButton) {
+                                sealSelection.insertBefore(sunButton, moonButton);
+                            }
+                        }
                         
                         // シール選択ボタン
                         const sealButtons = document.querySelectorAll('[data-seal]');
@@ -384,6 +402,27 @@ async function AppInit() {
         
 
         //オブジェクト(left)
+        // 左部屋の状態インジケーター
+        if (!gameObjectManager.objects.has('left-room-indicator')) {
+            gameObjectManager.addObject({
+                id: 'left-room-indicator',
+                view: 'left',
+                x: 80,
+                y: 10,
+                width: 60,
+                height: 60,
+                imgSrc: './images/nazo.png',
+                description: '左部屋の状態を示すインジケーター',
+                isCollectible: false,
+                maxUsageCount: Infinity,
+                onClick: function() {
+                    const state = gameManager.leftRoomState;
+                    const stateText = state === 'sun' ? '☀️ 太陽' : state === 'moon' ? '🌙 月' : '未設定';
+                    uiManager.updateStatus(`左部屋の状態: ${stateText}`);
+                }
+            });
+        }
+        
         //箱(水槽の土台)
         if (!gameObjectManager.objects.has('left-object')) {
             gameObjectManager.addObject({
@@ -451,6 +490,27 @@ async function AppInit() {
         }
 
         //オブジェクト(right)
+        // 右部屋の状態インジケーター
+        if (!gameObjectManager.objects.has('right-room-indicator')) {
+            gameObjectManager.addObject({
+                id: 'right-room-indicator',
+                view: 'right',
+                x: 80,
+                y: 10,
+                width: 60,
+                height: 60,
+                imgSrc: './images/nazo.png',
+                description: '右部屋の状態を示すインジケーター',
+                isCollectible: false,
+                maxUsageCount: Infinity,
+                onClick: function() {
+                    const state = gameManager.rightRoomState;
+                    const stateText = state === 'sun' ? '☀️ 太陽' : state === 'moon' ? '🌙 月' : '未設定';
+                    uiManager.updateStatus(`右部屋の状態: ${stateText}`);
+                }
+            });
+        }
+        
         // 4桁シンボル謎解き(水槽の謎を利用)
         if (!gameObjectManager.objects.has('right-object')) {
             gameObjectManager.addObject({
