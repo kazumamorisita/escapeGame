@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>実験室からの脱出 </title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Firebase module moved to external file -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-gray-100 min-h-screen font-sans p-4">
+
+    <!-- タイトル画面 (最前面) -->
+    <div id="title-screen" class="fixed inset-0 bg-gray-900 z-50 flex items-center justify-center hidden">
+        <div class="text-center p-8 bg-white rounded-xl shadow-2xl max-w-sm w-full">
+            <h1 class="text-4xl font-extrabold text-indigo-600 mb-2">脱出ゲーム</h1>
+            <p class="text-gray-500 mb-8">実験室からの脱出</p>
+            
+            <div class="flex flex-col gap-4">
+                <button id="new-game-button" 
+                        class="w-full p-4 rounded-lg font-bold transition duration-200 
+                               bg-green-600 text-white hover:bg-green-700 shadow-md">
+                    初めからプレイ
+                </button>
+                <button id="continue-button" 
+                        disabled
+                        class="w-full p-4 rounded-lg font-bold transition duration-200 
+                               bg-gray-500 text-white opacity-50 cursor-not-allowed">
+                    続きからプレイ (ロード中...)
+                </button>
+            </div>
+            
+            <p class="text-xs text-gray-400 mt-6">
+                UserID: <span id="user-id-display">N/A</span>
+            </p>
+        </div>
+    </div>
+
+
+    <!-- ゲームメインコンテナ -->
+    <div id="game-container" class="w-full max-w-4xl bg-white rounded-xl shadow-2xl overflow-hidden relative hidden">
+
+        <!-- ステータスメッセージ表示エリア -->
+        <div id="status-message" class="hidden absolute top-0 left-1/2 -translate-x-1/2 mt-4 z-40 p-3 bg-blue-500 text-white text-sm font-medium rounded-lg shadow-xl">
+            ゲーム開始。部屋を調べて脱出してください。
+        </div>
+
+    <!-- 画面ビューポート (垂直方向を伸ばす: 高さを増加) -->
+    <div class="relative h-[85vh] sm:h-[90vh] w-full border-b-4 border-gray-300">
+            
+            <!-- 左矢印ボタン -->
+            <button id="left-arrow" class="arrow-button absolute left-0 top-1/2  bg-gray-/100 text-black p-4 rounded-r-full z-20 opacity-80 hover:opacity-100">
+                <i data-lucide="chevron-left" class="w-6 h-6"></i>
+            </button>
+
+            <!-- 右矢印ボタン -->
+            <button id="right-arrow" class="arrow-button absolute right-0 top-1/2  bg-gray-/100 text-black p-4 rounded-l-full z-20 opacity-80 hover:opacity-100">
+                <i data-lucide="chevron-right" class="w-6 h-6"></i>
+            </button>
+            
+            <!-- 画面コンテンツ -->
+            
+            <!-- 1. 左画面 -->
+            <div id="left-view" class="absolute inset-0 game-view p-8 hidden">
+                
+            </div>
+
+            <!-- 2. 正面画面 (初期表示) -->
+            <div id="front-view" class="absolute inset-0 game-view p-8">
+                <!-- <div class="text-4xl font-extrabold text-red-600 mb-8">これは正面画面です</div> -->
+
+                <div class="flex flex-col sm:flex-row gap-8 items-center h-screen justify-start mt-9">
+                    
+                    <!-- 脱出ドア -->
+                    <div class="flex flex-col items-center">
+                        
+                        <button id="escape-door-btn" 
+                            class="w-24 h-48 p-4 rounded-xl font-bold transition duration-300 
+                            bg-red-700 text-white opacity-50 flex items-center justify-center"
+                            disabled>
+                            <i data-lucide="key" class="w-16 h-16 text-gray-200"></i>
+                        </button>
+                    </div>
+
+                    <!-- 鍵ボタン削除 -->
+                </div>
+            </div>
+
+            <!-- 3. 右画面 -->
+            <div id="right-view" class="absolute inset-0 game-view p-8 hidden">
+                
+            </div>
+
+        </div>
+
+        <!-- フッター情報 -->
+        <!--アイテム一覧-->
+        <!-- フッター情報 -->
+        <div id="inventory-container" class="flex p-4 bg-gray-50 text-center text-sm text-gray-500 border-t gap-4 justify-center">
+            <div id="inventory-slot-0" class="w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center"></div>
+            <div id="inventory-slot-1" class="w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center"></div>
+            <div id="inventory-slot-2" class="w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center"></div>
+            <div id="inventory-slot-3" class="w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center"></div>
+            <div id="inventory-slot-4" class="w-10 h-10 bg-gray-400 rounded-full flex items-center justify-center"></div>
+        </div>
+
+    </div>
+
+    <!-- モーダル（脱出成功メッセージ） -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center hidden">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-sm transform transition-all duration-300 scale-100">
+            <h2 id="modal-title" class="text-2xl font-bold text-green-600 mb-4 text-center"></h2>
+            <p id="modal-text" class="text-gray-700 mb-6 text-center"></p>
+            <button id="modal-close-btn" class="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700">閉じる</button>
+        </div>
+    </div>
+
+    <!-- パズル表示用モーダル -->
+    <div id="puzzle-modal-overlay" class="hidden">
+        <div class="puzzle-box">
+            <div id="puzzle-modal-content"></div>
+            <div id="puzzle-modal-close" class="text-right">
+                <button id="puzzle-modal-close-btn" class="mt-3 w-full bg-gray-800 text-white p-3 rounded-lg hover:bg-gray-900">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+
+</body>
+</html>

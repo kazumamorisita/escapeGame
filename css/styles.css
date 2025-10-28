@@ -1,0 +1,62 @@
+/* 矢印ボタン: translateY(-50%) を維持して縦ずれを防止 */
+.arrow-button {
+    transition: all 0.18s ease-in-out;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    /* Tailwind の -translate-y-1/2 と共存させるため、基準の translateY をここで維持 */
+    transform: translateY(-50%);
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ホバー時も translateY(-50%) を保持して縦ずれを防止 */
+.arrow-button:hover {
+    transform: translateY(-50%) scale(1.05);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+
+/* 押下時は移動しないように translateY(-50%) を保持（スケールは解除） */
+.arrow-button:active {
+    transform: translateY(-50%) scale(1);
+}
+/* 画面のコンテナ（ゲームビュー） */
+.game-view {
+    transition: opacity 0.3s;
+    background-color: #e2e8f0; /* Light Slate */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ゲーム内に配置するオブジェクト */
+.game-object {
+    cursor: pointer;
+    display: inline-block;
+    overflow: hidden;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.12);
+    transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+.game-object:hover { transform: translateY(-2px) scale(1.02); }
+
+/* パズル用モーダル */
+#puzzle-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 60;
+    /* display は .puzzle-visible クラスで切り替える（Tailwind の .hidden と競合しないようにする） */
+    align-items: center;
+    justify-content: center;
+}
+
+/* visible class used to show the overlay (keeps Tailwind .hidden usable) */
+.puzzle-visible { display: flex; }
+#puzzle-modal-overlay .puzzle-box {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 720px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+#puzzle-modal-content { color: #111; }
+#puzzle-modal-close { margin-top: 12px; }
