@@ -242,6 +242,11 @@ async function AppInit() {
                                 }
                             }
                             
+                            // 左部屋のおじさんを状態に応じて更新
+                            if (gameManager && typeof gameManager.updateLeftRoomOzisan === 'function') {
+                                gameManager.updateLeftRoomOzisan();
+                            }
+                            
                             // 状態表示を更新
                             const leftStatus = document.getElementById('left-room-status');
                             const rightStatus = document.getElementById('right-room-status');
@@ -472,8 +477,9 @@ async function AppInit() {
             });
         }
 
-        //太陽おじさん(記入済みの申込書を使うと太陽シールをくれる)
-        if (!gameObjectManager.objects.has('taiyou-ozisan')) {
+        //太陽おじさん(記入済みの申込書を使うと太陽シールをくれる) - 左部屋が未設定か太陽の時のみ表示
+        if (!gameObjectManager.objects.has('taiyou-ozisan') && 
+            (gameManager.leftRoomState === null || gameManager.leftRoomState === 'sun')) {
             gameObjectManager.addObject({
                 id: 'taiyou-ozisan',
                 view: 'left',
@@ -486,6 +492,25 @@ async function AppInit() {
                 isCollectible: false,
                 maxUsageCount: 1,
                 onClick: () => gameManager.unlockTaiyouOzisan(),
+            });
+        }
+
+        //月おじさん(左部屋が月の状態の時に登場)
+        if (!gameObjectManager.objects.has('tuki-ozisan') && gameManager.leftRoomState === 'moon') {
+            gameObjectManager.addObject({
+                id: 'tuki-ozisan',
+                view: 'left',
+                x: 60,
+                y: 30,
+                width: 160,
+                height: 160,
+                imgSrc: './images/nazo.png',
+                description: '月の部屋に住むおじさんです。',
+                isCollectible: false,
+                maxUsageCount: 1,
+                onClick: function() {
+                    uiManager.updateStatus('月おじさん: 「ここは月の部屋だよ。」');
+                }
             });
         }
 

@@ -131,6 +131,9 @@ export class GameManager {
                     this.usedItems.forEach(itemId => {
                         this.objectsManager.removeObject(itemId);
                     });
+                    
+                    // 左部屋のおじさんを状態に応じて更新
+                    this.updateLeftRoomOzisan();
                 }
             }
         } else {
@@ -246,6 +249,56 @@ export class GameManager {
             this.uiManager.showEscapeMessage('脱出成功！', 'おめでとうございます。進行状況の保存機能も確認できました！');
         } else {
             this.uiManager.updateStatus('ドアはロックされています。どこかに鍵があるはずです...');
+        }
+    }
+
+    // 左の部屋のおじさんを状態に応じて更新する
+    updateLeftRoomOzisan() {
+        if (!this.objectsManager) return;
+        
+        // 既存のおじさんを削除
+        this.objectsManager.removeObject('taiyou-ozisan');
+        this.objectsManager.removeObject('tuki-ozisan');
+        
+        // 状態に応じて適切なおじさんを配置
+        if (this.leftRoomState === null || this.leftRoomState === 'sun') {
+            // 太陽おじさんを配置（まだ使用されていない場合のみ）
+            const usageCount = this.objectUsageCounts.get('taiyou-ozisan') || 0;
+            if (usageCount === 0) {
+                this.objectsManager.addObject({
+                    id: 'taiyou-ozisan',
+                    view: 'left',
+                    x: 60,
+                    y: 30,
+                    width: 160,
+                    height: 160,
+                    imgSrc: './images/nazo.png',
+                    description: '記入済みの申込書をくれれば，太陽シールをあげよう．',
+                    isCollectible: false,
+                    maxUsageCount: 1,
+                    onClick: () => this.unlockTaiyouOzisan(),
+                });
+            }
+        } else if (this.leftRoomState === 'moon') {
+            // 月おじさんを配置
+            this.objectsManager.addObject({
+                id: 'tuki-ozisan',
+                view: 'left',
+                x: 60,
+                y: 30,
+                width: 160,
+                height: 160,
+                imgSrc: './images/nazo.png',
+                description: '月の部屋に住むおじさんです。',
+                isCollectible: false,
+                maxUsageCount: 1,
+                onClick: function() {
+                    const uiManager = window.gameManager ? window.gameManager.uiManager : null;
+                    if (uiManager) {
+                        uiManager.updateStatus('月おじさん: 「ここは月の部屋だよ。」');
+                    }
+                }
+            });
         }
     }
 
