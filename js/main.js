@@ -140,6 +140,21 @@ async function AppInit() {
             });
         }
 
+        // 太陽シール申込書(記念日の謎を解くと出現)
+        if (!gameObjectManager.objects.has('paper')) {
+            gameObjectManager.addObject({
+                id: 'paper',
+                view: 'front',
+                x: 70,
+                y: 30,
+                width: 48,
+                height: 48,
+                imgSrc: './images/nazo.png',
+                description: '謎の申込用紙．名前を書くと太陽シールがもらえるらしい．',
+                isCollectible: true,
+                    maxUsageCount: 1,
+            });
+        }
 
         // 金庫オブジェクト(記念日)
         if (!gameObjectManager.objects.has('numeric-safe')) {
