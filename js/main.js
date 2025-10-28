@@ -140,8 +140,6 @@ async function AppInit() {
             });
         }
 
-<<<<<<< HEAD
-=======
         // 太陽シール申込書(記念日の謎を解くと出現)
         if (!gameObjectManager.objects.has('paper')) {
             gameObjectManager.addObject({
@@ -157,7 +155,6 @@ async function AppInit() {
                     maxUsageCount: 1,
             });
         }
->>>>>>> 0e6693ca989f143fc672aa4e666408cf950e438b
 
         // 金庫オブジェクト(記念日)
         if (!gameObjectManager.objects.has('numeric-safe')) {
