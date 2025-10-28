@@ -139,7 +139,7 @@ export class InventoryManager {
 
                             const newItem = {
                                 id: 'paper-filled',
-                                imgSrc: '/images/nazo.png',
+                                imgSrc: './images/nazo.png',
                                 description: '記入済みの申込書。提出できそうだ。'
                             };
 
