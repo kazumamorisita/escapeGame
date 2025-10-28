@@ -508,7 +508,7 @@ async function AppInit() {
                 description: '月の部屋に住むおじさんです。',
                 isCollectible: false,
                 maxUsageCount: 1,
-                onClick: function() {
+                onClick: () => {
                     uiManager.updateStatus('月おじさん: 「ここは月の部屋だよ。」');
                 }
             });

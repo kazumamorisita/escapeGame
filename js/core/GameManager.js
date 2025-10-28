@@ -292,11 +292,8 @@ export class GameManager {
                 description: '月の部屋に住むおじさんです。',
                 isCollectible: false,
                 maxUsageCount: 1,
-                onClick: function() {
-                    const uiManager = window.gameManager ? window.gameManager.uiManager : null;
-                    if (uiManager) {
-                        uiManager.updateStatus('月おじさん: 「ここは月の部屋だよ。」');
-                    }
+                onClick: () => {
+                    this.uiManager.updateStatus('月おじさん: 「ここは月の部屋だよ。」');
                 }
             });
         }
