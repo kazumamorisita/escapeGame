@@ -111,7 +111,7 @@ export class GameManager {
                                 y: 30,
                                 width: 48,
                                 height: 48,
-                                imgSrc: '/images/nazo.png',
+                                imgSrc: './images/nazo.png',
                                 description: 'カワウソのこっつん．お腹がすいているようだ．',
                                 isCollectible: true,
                                 maxUsageCount: 1
