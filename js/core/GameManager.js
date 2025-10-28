@@ -11,6 +11,8 @@ export class GameManager {
         this.hasSaveData = false;
         this.usedItems = new Set(); // 使用済みアイテムを追跡
         this.objectUsageCounts = new Map(); // オブジェクトIDごとの使用回数を追跡
+        this.rightRoomState = null; // 右部屋の状態: 'sun', 'moon', null
+        this.leftRoomState = null;  // 左部屋の状態: 'sun', 'moon', null
     }
 
     async saveGameState() {
@@ -29,6 +31,8 @@ export class GameManager {
                 collectedItems: this.inventoryManager ? this.inventoryManager.toArray() : [],
                 usedItems: Array.from(this.usedItems), // 使用済みアイテムリストを保存
                 objectUsageCounts: usageCounts, // オブジェクトごとの使用回数を保存
+                rightRoomState: this.rightRoomState, // 右部屋の状態
+                leftRoomState: this.leftRoomState,   // 左部屋の状態
                 updatedAt: new Date().toISOString()
             };
             await setDoc(ref, state);
@@ -57,6 +61,10 @@ export class GameManager {
             if (data.objectUsageCounts && typeof data.objectUsageCounts === 'object') {
                 this.objectUsageCounts = new Map(Object.entries(data.objectUsageCounts));
             }
+
+            // 部屋の状態を復元
+            this.rightRoomState = data.rightRoomState || null;
+            this.leftRoomState = data.leftRoomState || null;
 
             // オブジェクトの状態を管理
             if (this.objectsManager) {
@@ -247,6 +255,9 @@ export class GameManager {
         this.usedItems.clear();
         // オブジェクト使用回数をクリア
         this.objectUsageCounts.clear();
+        // 部屋の状態をリセット
+        this.rightRoomState = null;
+        this.leftRoomState = null;
         // インベントリを初期化
         if (this.inventoryManager) {
             try {

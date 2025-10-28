@@ -122,6 +122,190 @@ async function AppInit() {
             });
         }
 
+        // シール配置パズル
+        if (!gameObjectManager.objects.has('seal-puzzle')) {
+            gameObjectManager.addObject({
+                id: 'seal-puzzle',
+                view: 'front',
+                x: 30,
+                y: 55,
+                width: 120,
+                height: 80,
+                imgSrc: './images/nazo.png',
+                description: '2つの四角が描かれた謎の装置。シールを配置できそうだ。',
+                isPuzzle: true,
+                maxUsageCount: Infinity, // 何度でも使用可能
+                puzzleContent: `
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold mb-4">シール配置パズル</h3>
+                        <p class="text-gray-600 mb-4">太陽シールと月シールを配置してください</p>
+                        
+                        <!-- 配置エリア -->
+                        <div class="flex justify-center gap-8 mb-6">
+                            <div class="slot-area text-center">
+                                <p class="text-sm text-gray-500 mb-2">左の四角</p>
+                                <div id="left-slot" class="w-24 h-24 border-4 border-gray-400 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-400 transition bg-gray-100" data-slot="left">
+                                    <span class="text-4xl" id="left-seal-display">-</span>
+                                </div>
+                            </div>
+                            <div class="slot-area text-center">
+                                <p class="text-sm text-gray-500 mb-2">右の四角</p>
+                                <div id="right-slot" class="w-24 h-24 border-4 border-gray-400 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-400 transition bg-gray-100" data-slot="right">
+                                    <span class="text-4xl" id="right-seal-display">🌙</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- シール選択 -->
+                        <div class="mb-4">
+                            <p class="text-sm font-bold mb-2">配置するシール:</p>
+                            <div class="flex justify-center gap-4">
+                                <button id="select-sun" class="w-16 h-16 bg-yellow-400 text-4xl rounded-lg hover:bg-yellow-500 active:scale-95 transition border-2 border-transparent" data-seal="sun">☀️</button>
+                                <button id="select-moon" class="w-16 h-16 bg-blue-400 text-4xl rounded-lg hover:bg-blue-500 active:scale-95 transition border-2 border-transparent" data-seal="moon">🌙</button>
+                                <button id="remove-seal" class="w-16 h-16 bg-gray-400 text-2xl rounded-lg hover:bg-gray-500 active:scale-95 transition" data-seal="">✕</button>
+                            </div>
+                        </div>
+                        
+                        <!-- 状態表示 -->
+                        <div class="bg-gray-100 p-3 rounded-lg text-sm">
+                            <p><strong>左部屋:</strong> <span id="left-room-status">未設定</span></p>
+                            <p><strong>右部屋:</strong> <span id="right-room-status">未設定</span></p>
+                        </div>
+                    </div>
+                `,
+                puzzleOptions: {
+                    onShow: () => {
+                        // 初期状態の復元
+                        const rightDisplay = document.getElementById('right-seal-display');
+                        const leftDisplay = document.getElementById('left-seal-display');
+                        
+                        // 初期状態: 右に月シール
+                        if (rightDisplay) rightDisplay.textContent = '🌙';
+                        if (leftDisplay) leftDisplay.textContent = '-';
+                        
+                        let selectedSeal = '';
+                        let currentLeftSeal = null;
+                        let currentRightSeal = 'moon'; // 初期状態
+                        
+                        // シール選択ボタン
+                        const sealButtons = document.querySelectorAll('[data-seal]');
+                        sealButtons.forEach(btn => {
+                            btn.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                selectedSeal = btn.getAttribute('data-seal');
+                                
+                                // 選択状態の表示
+                                sealButtons.forEach(b => b.classList.remove('ring-4', 'ring-blue-500'));
+                                if (selectedSeal) {
+                                    btn.classList.add('ring-4', 'ring-blue-500');
+                                }
+                            });
+                        });
+                        
+                        // スロットクリック処理
+                        const leftSlot = document.getElementById('left-slot');
+                        const rightSlot = document.getElementById('right-slot');
+                        
+                        const updateRoomStates = () => {
+                            // 左=太陽 かつ 右=月 → right部屋=moon, left部屋=sun
+                            // 左=月 かつ 右=太陽 → right部屋=sun, left部屋=moon
+                            if (currentLeftSeal === 'sun' && currentRightSeal === 'moon') {
+                                gameManager.rightRoomState = 'moon';
+                                gameManager.leftRoomState = 'sun';
+                            } else if (currentLeftSeal === 'moon' && currentRightSeal === 'sun') {
+                                gameManager.rightRoomState = 'sun';
+                                gameManager.leftRoomState = 'moon';
+                            } else {
+                                // 不完全な状態はリセット
+                                if (!currentLeftSeal || !currentRightSeal) {
+                                    gameManager.rightRoomState = null;
+                                    gameManager.leftRoomState = null;
+                                }
+                            }
+                            
+                            // 状態表示を更新
+                            const leftStatus = document.getElementById('left-room-status');
+                            const rightStatus = document.getElementById('right-room-status');
+                            if (leftStatus) {
+                                leftStatus.textContent = gameManager.leftRoomState === 'sun' ? '☀️ 太陽' : 
+                                                         gameManager.leftRoomState === 'moon' ? '🌙 月' : '未設定';
+                            }
+                            if (rightStatus) {
+                                rightStatus.textContent = gameManager.rightRoomState === 'sun' ? '☀️ 太陽' : 
+                                                          gameManager.rightRoomState === 'moon' ? '🌙 月' : '未設定';
+                            }
+                            
+                            // 保存
+                            if (gameManager && typeof gameManager.saveGameState === 'function') {
+                                gameManager.saveGameState().catch(e => console.error('save error', e));
+                            }
+                        };
+                        
+                        if (leftSlot) {
+                            leftSlot.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                
+                                if (selectedSeal === '') {
+                                    // 削除
+                                    currentLeftSeal = null;
+                                    leftDisplay.textContent = '-';
+                                } else if (selectedSeal === 'sun') {
+                                    // 太陽シール配置時にtaiyou-si-ruを持っているかチェック
+                                    if (!inventoryManager.hasItem('taiyou-si-ru')) {
+                                        uiManager.updateStatus('太陽シールを持っていません。', true);
+                                        return;
+                                    }
+                                    currentLeftSeal = 'sun';
+                                    leftDisplay.textContent = '☀️';
+                                } else if (selectedSeal === 'moon') {
+                                    currentLeftSeal = 'moon';
+                                    leftDisplay.textContent = '🌙';
+                                }
+                                
+                                updateRoomStates();
+                            });
+                        }
+                        
+                        if (rightSlot) {
+                            rightSlot.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                
+                                if (selectedSeal === '') {
+                                    // 削除
+                                    currentRightSeal = null;
+                                    rightDisplay.textContent = '-';
+                                } else if (selectedSeal === 'sun') {
+                                    // 太陽シール配置時にtaiyou-si-ruを持っているかチェック
+                                    if (!inventoryManager.hasItem('taiyou-si-ru')) {
+                                        uiManager.updateStatus('太陽シールを持っていません。', true);
+                                        return;
+                                    }
+                                    currentRightSeal = 'sun';
+                                    rightDisplay.textContent = '☀️';
+                                } else if (selectedSeal === 'moon') {
+                                    currentRightSeal = 'moon';
+                                    rightDisplay.textContent = '🌙';
+                                }
+                                
+                                updateRoomStates();
+                            });
+                        }
+                        
+                        // 初期状態の反映
+                        updateRoomStates();
+                    },
+                    solveFunc: () => {
+                        // このパズルは「解く」ボタンを表示しない
+                        return false;
+                    },
+                    showSolveButton: false // 解くボタンを非表示
+                }
+            });
+        }
+
         // --- パズル用オブジェクトの例 ---
         // 以下は「数字入力」で解くパズルの例です。必要なら有効化して使ってください。
         // 解かれた後の金庫
@@ -139,6 +323,7 @@ async function AppInit() {
                     maxUsageCount: 1,
             });
         }
+
 
         // 金庫オブジェクト(記念日)
         if (!gameObjectManager.objects.has('numeric-safe')) {
