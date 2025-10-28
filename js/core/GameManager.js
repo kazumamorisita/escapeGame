@@ -111,7 +111,7 @@ export class GameManager {
                                 y: 30,
                                 width: 48,
                                 height: 48,
-                                imgSrc: '/images/nazo.png',
+                                imgSrc: './images/nazo.png',
                                 description: 'カワウソのこっつん．お腹がすいているようだ．',
                                 isCollectible: true,
                                 maxUsageCount: 1
@@ -182,6 +182,56 @@ export class GameManager {
             this.uiManager.updateStatus('魚が邪魔をしている');
         } 
 	}
+    async unlockTaiyouOzisan() {
+        const selectedItem = this.inventoryManager.getSelectedItem();
+        if (selectedItem && selectedItem.id === 'paper-filled') {
+            // paper-filled選択時: taiyou-si-ruを取得
+            if (this.inventoryManager.hasItem('taiyou-si-ru')) {
+                this.uiManager.updateStatus('すでに太陽シールを所持しています。');
+                return;
+            }
+            
+            this.uiManager.updateStatus('太陽おじさんに申込書を渡しました！');
+            // アイテムを消費（インベントリから削除）
+            this.inventoryManager.removeItemById('paper-filled');
+            this.usedItems.add('paper-filled');
+            this.inventoryManager.clearSelection();
+            
+            // taiyou-si-ruを追加
+            const newItem = {
+                id: 'taiyou-si-ru',
+                imgSrc: '/images/nazo.png',
+                description: '太陽おじさんからもらった太陽シール。何かに使えそうだ。'
+            };
+            
+            const ok = this.inventoryManager.addItem(newItem);
+            if (ok) {
+                this.uiManager.updateStatus('太陽シールを取得しました。');
+                
+                // taiyou-si-ruの説明ウィンドウを表示
+                const newSlotIndex = this.inventoryManager.slots.findIndex(item => item && item.id === 'taiyou-si-ru');
+                if (newSlotIndex !== -1) {
+                    setTimeout(() => {
+                        this.inventoryManager.showItemDescription(newSlotIndex);
+                    }, 100);
+                }
+                
+                await this.saveGameState();
+            } else {
+                this.uiManager.updateStatus('インベントリがいっぱいです。', true);
+            }
+        } else {
+            // 何も選択していない、または別のアイテムを選択している場合: 説明ウィンドウを表示
+            const content = `
+                <div class="p-4">
+                    <h3 class="text-xl font-bold mb-4">太陽おじさん</h3>
+                    <img src="/images/nazo.png" alt="太陽おじさん" class="w-48 h-48 mx-auto mb-4 rounded">
+                    <p class="text-gray-700">記入済みの申込書をくれれば、太陽シールをあげよう。</p>
+                </div>
+            `;
+            this.uiManager.showPuzzle(content);
+        }
+    }
 
     checkDoor() {
         if (this.isDoorUnlocked) {

@@ -115,7 +115,7 @@ async function AppInit() {
                 y: 55,
                 width: 96,
                 height: 96,
-                imgSrc: '/images/nazo.png',
+                imgSrc: './images/nazo.png',
                 description: '不思議な箱です。鍵がかかっているようです。',
                 isCollectible: true,
                     maxUsageCount: 1,
@@ -133,28 +133,13 @@ async function AppInit() {
                 y: 30,
                 width: 120,
                 height: 80,
-                imgSrc: '/images/nazo.png',
+                imgSrc: './images/nazo.png',
                 description: '解かれた後の金庫．中にはもう何もないようだ．',
                 isCollectible: false,
                     maxUsageCount: 1,
             });
         }
 
-        // 太陽シール申込書(記念日の謎を解くと出現)
-        if (!gameObjectManager.objects.has('paper')) {
-            gameObjectManager.addObject({
-                id: 'paper',
-                view: 'front',
-                x: 70,
-                y: 30,
-                width: 48,
-                height: 48,
-                imgSrc: '/images/nazo.png',
-                description: '謎の申込用紙．名前を書くと太陽シールがもらえるらしい．',
-                isCollectible: true,
-                    maxUsageCount: 1,
-            });
-        }
 
         // 金庫オブジェクト(記念日)
         if (!gameObjectManager.objects.has('numeric-safe')) {
@@ -165,7 +150,7 @@ async function AppInit() {
                 y: 30,
                 width: 120,
                 height: 80,
-                imgSrc: '/images/nazo.png',
+                imgSrc: './images/nazo.png',
                 description: '古い金庫。ダイヤルで開ける必要がある。',
                 isPuzzle: true,
                     maxUsageCount: 1,
@@ -198,8 +183,15 @@ async function AppInit() {
                     spawnObjects: [
                         {
                             id: 'kottsun', view: 'front', x: 80, y: 30, width: 48, height: 48,
-                                imgSrc: '/images/nazo.png', description: 'カワウソのこっつん．お腹がすいているようだ．', isCollectible: true,
+                                imgSrc: './images/nazo.png', description: 'カワウソのこっつん．お腹がすいているようだ．', isCollectible: true,
                                 maxUsageCount: 1
+                        },
+                        {
+                            id: 'paper', view: 'front', x: 70, y: 30, width: 48, height: 48,
+                            imgSrc: './images/nazo.png',
+                            description: '謎の申込用紙．名前を書くと太陽シールがもらえるらしい．',
+                            isCollectible: true,
+                            maxUsageCount: 1
                         }
                     ]
                 }
@@ -217,7 +209,7 @@ async function AppInit() {
                 y: 41,
                 width: 80,
                 height: 80,
-                imgSrc: '/images/nazo.png',
+                imgSrc: './images/nazo.png',
                 description: '左側の不思議な箱です。',
                 isCollectible: false,
                 maxUsageCount: 1,
@@ -233,7 +225,7 @@ async function AppInit() {
                 y: 30,
                 width: 80,
                 height: 80,
-                imgSrc: '/images/nazo.png',
+                imgSrc: './images/nazo.png',
                 description: '魚がいなくなって何か見えるようになった．',
                 isCollectible: false,
                 maxUsageCount: 1,
@@ -249,7 +241,7 @@ async function AppInit() {
                 y: 30,
                 width: 80,
                 height: 80,
-                imgSrc: '/images/nazo.png',
+                imgSrc: './images/nazo.png',
                 description: '左側の不思議な箱です。',
                 isCollectible: false,
                 maxUsageCount: 1,
@@ -257,6 +249,107 @@ async function AppInit() {
             });
         }
 
+        //太陽おじさん(記入済みの申込書を使うと太陽シールをくれる)
+        if (!gameObjectManager.objects.has('taiyou-ozisan')) {
+            gameObjectManager.addObject({
+                id: 'taiyou-ozisan',
+                view: 'left',
+                x: 60,
+                y: 30,
+                width: 160,
+                height: 160,
+                imgSrc: './images/nazo.png',
+                description: '記入済みの申込書をくれれば，太陽シールをあげよう．',
+                isCollectible: false,
+                maxUsageCount: 1,
+                onClick: () => gameManager.unlockTaiyouOzisan(),
+            });
+        }
+
+        //オブジェクト(right)
+        // 4桁シンボル謎解き(水槽の謎を利用)
+        if (!gameObjectManager.objects.has('right-object')) {
+            gameObjectManager.addObject({
+                id: 'right-object',
+                view: 'right',
+                x: 80,
+                y: 41,
+                width: 80,
+                height: 80,
+                imgSrc: './images/nazo.png',
+                description: 'シンボルが描かれた謎の装置。',
+                isPuzzle: true,
+                maxUsageCount: 1,
+                puzzleContent: `
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold mb-4">シンボルパズル</h3>
+                        <p class="text-gray-600 mb-4">各シンボルに対応する数字をタップで選択してください</p>
+                        <div class="flex justify-center gap-3 mb-6">
+                            <div class="symbol-digit text-center">
+                                <div class="text-4xl mb-2">🌙</div>
+                                <button id="digit-0" class="w-16 h-16 bg-blue-500 text-white text-2xl font-bold rounded-lg hover:bg-blue-600 active:scale-95 transition">0</button>
+                            </div>
+                            <div class="symbol-digit text-center">
+                                <div class="text-4xl mb-2">⭐</div>
+                                <button id="digit-1" class="w-16 h-16 bg-blue-500 text-white text-2xl font-bold rounded-lg hover:bg-blue-600 active:scale-95 transition">0</button>
+                            </div>
+                            <div class="symbol-digit text-center">
+                                <div class="text-4xl mb-2">☀️</div>
+                                <button id="digit-2" class="w-16 h-16 bg-blue-500 text-white text-2xl font-bold rounded-lg hover:bg-blue-600 active:scale-95 transition">0</button>
+                            </div>
+                            <div class="symbol-digit text-center">
+                                <div class="text-4xl mb-2">🌸</div>
+                                <button id="digit-3" class="w-16 h-16 bg-blue-500 text-white text-2xl font-bold rounded-lg hover:bg-blue-600 active:scale-95 transition">0</button>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                puzzleOptions: {
+                    onShow: () => {
+                        // 各桁のボタンにタップで数字をインクリメントする機能を追加
+                        for (let i = 0; i < 4; i++) {
+                            const btn = document.getElementById(`digit-${i}`);
+                            if (btn) {
+                                btn.addEventListener('click', (e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    const current = parseInt(btn.textContent) || 0;
+                                    const next = (current + 1) % 10;
+                                    btn.textContent = next.toString();
+                                });
+                            }
+                        }
+                    },
+                    solveFunc: (values) => {
+                        // values は未使用（ボタンから直接取得）
+                        const digit0 = document.getElementById('digit-0');
+                        const digit1 = document.getElementById('digit-1');
+                        const digit2 = document.getElementById('digit-2');
+                        const digit3 = document.getElementById('digit-3');
+                        
+                        if (!digit0 || !digit1 || !digit2 || !digit3) return false;
+                        
+                        const code = digit0.textContent + digit1.textContent + digit2.textContent + digit3.textContent;
+                        // 正解は "1234" の例（変更可能）
+                        return code === '1234';
+                    },
+                    spawnObjects: [
+                        {
+                            id: 'pen',
+                            view: 'right',
+                            x: 80,
+                            y: 41,
+                            width: 60,
+                            height: 60,
+                            imgSrc: './images/nazo.png',
+                            description: 'シンボルパズルから得たペン。',
+                            isCollectible: true,
+                            maxUsageCount: 1
+                        }
+                    ]
+                }
+            });
+        }
     }
     // 初回起動時に初期オブジェクトを登録
     registerInitialObjects();

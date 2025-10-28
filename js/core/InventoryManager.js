@@ -126,8 +126,8 @@ export class InventoryManager {
                     img.addEventListener('click', async () => {
                         console.log(`${id}がクリックされました`);
 
-                        // 条件: 対象が paper で、かつ mysterious-box を所持している場合
-                        if (id === 'paper' && this.hasItem('mysterious-box')) {
+                        // 条件: 対象が paper で、かつ pen を所持している場合
+                        if (id === 'paper' && this.hasItem('pen')) {
                             // すでに記入済みを持っていれば何もしない
                             if (this.hasItem('paper-filled')) {
                                 this.uiManager.updateStatus('すでに記入済みの申込書を所持しています。');
@@ -139,7 +139,7 @@ export class InventoryManager {
 
                             const newItem = {
                                 id: 'paper-filled',
-                                imgSrc: '/images/nazo.png',
+                                imgSrc: './images/nazo.png',
                                 description: '記入済みの申込書。提出できそうだ。'
                             };
 

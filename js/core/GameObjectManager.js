@@ -132,6 +132,18 @@ export class GameObjectManager {
                         }
                     }
                 });
+                
+                // パズル表示直後に追加のセットアップを実行（カスタムイベントリスナーなど）
+                if (typeof puzzleOptions.onShow === 'function') {
+                    setTimeout(() => {
+                        try {
+                            puzzleOptions.onShow();
+                        } catch (e) {
+                            console.error('puzzle onShow error', e);
+                        }
+                    }, 50);
+                }
+                
                 return;
             }
             if (typeof onClick === 'function') {
