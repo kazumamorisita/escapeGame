@@ -111,7 +111,7 @@ export class GameManager {
 
     checkDoor() {
         if (this.isDoorUnlocked) {
-            this.uiManager.showEscapeMessage('脱出成功！', 'おめでとうございます。進行状況の保存機能も確認できました！');
+            this.uiManager.showEscapeMessage('脱出成功～おはよう！', 'おめでとうございます。進行状況の保存機能も確認できました！');
         } else {
             this.uiManager.updateStatus('ドアはロックされています。どこかに鍵があるはずです...');
         }

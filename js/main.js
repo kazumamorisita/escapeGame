@@ -448,10 +448,33 @@ async function AppInit() {
                         updateRoomStates();
                     },
                     solveFunc: () => {
-                        // このパズルは「解く」ボタンを表示しない
-                        return false;
+                        // 現在の部屋状態を通知する情報ウィンドウを表示
+                        const toText = (v) => v === 'sun' ? '☀️ 太陽' : v === 'moon' ? '🌙 月' : '未設定';
+                        const leftText = toText(gameManager.leftRoomState);
+                        const rightText = toText(gameManager.rightRoomState);
+                        const tip = gameManager.rightRoomState === 'sun'
+                          ? '右の部屋から熱気を感じる。'
+                          : gameManager.leftRoomState === 'moon'
+                              ? '左の部屋から冷気を感じる'
+                              : '何かが動く音がした．あたりを探索してみよう．';
+                        const resultHtml = `
+                            <div class="p-4">
+                                <h3 class="text-xl font-bold mb-4">配置を反映しました</h3>
+                                <div class="mb-3 text-gray-700">
+                                  <p><strong>左の部屋:</strong> ${leftText}</p>
+                                  <p><strong>右の部屋:</strong> ${rightText}</p>
+                                </div>
+                                <div class="bg-yellow-50 border border-yellow-200 p-3 rounded text-sm text-yellow-800">
+                                  ${tip}
+                                </div>
+                                <p class="mt-3 text-xs text-gray-500">ヒント: 各部屋の状態とシールの配置は対応している</p>
+                            </div>
+                        `;
+                        // 情報表示モーダル（解くボタンは非表示で、閉じるのみ）
+                        uiManager.showPuzzle(resultHtml, { showSolveButton: false });
+                        return false; // そのままモーダルを表示し続ける
                     },
-                    showSolveButton: false // 解くボタンを非表示
+                    showSolveButton: true // 解くボタンを表示
                 }
             });
         }
@@ -538,7 +561,7 @@ async function AppInit() {
                         {
                             id: 'paper', view: 'front', x: 70, y: 30, width: 48, height: 48,
                             imgSrc: './images/paper.png',
-                            description: '謎の申込用紙．名前を書くと太陽シールがもらえるらしい．',
+                            description: '謎の申込用紙．名前を書くと太陽シールがもらえるらしい．(ペンを取得したのち，この画像をタップで記入可能)',
                             isCollectible: true,
                             maxUsageCount: 1
                         }
@@ -639,7 +662,7 @@ async function AppInit() {
                             const newItem = {
                                 id: 'akuriru-picture',
                                 imgSrc: './images/akuriru-picture.png',
-                                description: '月のタンスから見つけたガラスブロック。'
+                                description: '月のタンスから見つけたガラスブロック。とてもピカピカしている'
                             };
                             const ok = typeof inv2.addItem === 'function' ? inv2.addItem(newItem) : false;
                             if (ok) {
@@ -708,7 +731,7 @@ async function AppInit() {
                 width: 120,
                 height: 80,
                 imgSrc: './images/tansu-1.png',
-                description: 'TANSU-1。特に何もないようだ。',
+                description: 'うんちく1号。水槽越しに文字を見ると反転して見えるらしい。つまり"←"は本来"→"を示しているのだ。水の屈折によるものである．',
                 isCollectible: false,
                 maxUsageCount: 1,
             });
@@ -723,7 +746,7 @@ async function AppInit() {
                 width: 120,
                 height: 80,
                 imgSrc: './images/tansu-2.png',
-                description: 'TANSU-2。特に何もないようだ。',
+                description: 'うんちく2号。太陽光を集めれば木に火を付けれるらしい。太陽の力は偉大である．氷なんて溶かしてしまうのだ．',
                 isCollectible: false,
                 maxUsageCount: 1,
             });
@@ -746,7 +769,7 @@ async function AppInit() {
                 onClick: function() {
                     const state = gameManager.leftRoomState;
                     const stateText = state === 'sun' ? '☀️ 太陽' : state === 'moon' ? '🌙 月' : '未設定';
-                    uiManager.updateStatus(`左部屋の状態: ${stateText}`);
+                    uiManager.updateStatus(`今左の部屋は: ${stateText}ですよ。`);
                 }
             });
         }
@@ -761,7 +784,7 @@ async function AppInit() {
                 width: 80,
                 height: 80,
                 imgSrc: './images/left-object.png',
-                description: '左側の不思議な箱です。',
+                description: '水槽の土台。頑張って支えてます！ちょっと水槽がめり込んでいるとかいないとか',
                 isCollectible: false,
                 maxUsageCount: 1,
             });
@@ -793,7 +816,7 @@ async function AppInit() {
                 width: 80,
                 height: 80,
                 imgSrc: './images/suiou.png',
-                description: '左側の不思議な箱です。',
+                description: '魚が邪魔をしているようだ．こっつんに食べてもらおう．',
                 isCollectible: false,
                 maxUsageCount: 1,
                 onClick: () => gameManager.unlockSuisou(),
@@ -811,7 +834,7 @@ async function AppInit() {
                 width: 133,
                 height: 160,
                 imgSrc: './images/taiyou-ozisan.png',
-                description: '記入済みの申込書をくれれば，太陽シールをあげよう．',
+                description: '記入済みの申込書をくれれば，太陽シールをあげよう．何に使うかはわからないがな．',
                 isCollectible: false,
                 maxUsageCount: 1,
                 onClick: () => gameManager.unlockTaiyouOzisan(),
@@ -828,7 +851,7 @@ async function AppInit() {
                 width: 133,
                 height: 160,
                 imgSrc: './images/tuki-ozisan.png',
-                description: '月の財布をくれれば、月の鍵をあげよう。',
+                description: 'やぁ、私は月おじさん。最近財布を無くしたんだよ。見かけなかったかい？',
                 isCollectible: false,
                 maxUsageCount: 1,
                 onClick: () => gameManager.unlockTukiOzisan(),
@@ -852,7 +875,7 @@ async function AppInit() {
                 onClick: function() {
                     const state = gameManager.rightRoomState;
                     const stateText = state === 'sun' ? '☀️ 太陽' : state === 'moon' ? '🌙 月' : '未設定';
-                    uiManager.updateStatus(`右部屋の状態: ${stateText}`);
+                    uiManager.updateStatus(`今右の部屋は: ${stateText}状態ですよ。`);
                 }
             });
         }
@@ -867,13 +890,13 @@ async function AppInit() {
                 width: 90,
                 height: 29,
                 imgSrc: './images/right-object.png',
-                description: 'シンボルが描かれた謎の装置。',
+                description: 'シンボルが描かれた謎の筆箱。',
                 isPuzzle: true,
                 maxUsageCount: 1,
                 puzzleContent: `
                     <div class="p-4">
                         <h3 class="text-xl font-bold mb-4">シンボルパズル</h3>
-                        <p class="text-gray-600 mb-4">各シンボルに対応する数字をタップで選択してください</p>
+                        <p class="text-gray-600 mb-4">各矢印に対応する数字をタップで選択してください</p>
                         <div class="flex justify-center gap-3 mb-6">
                             <div class="symbol-digit text-center">
                                 <div class="text-4xl mb-2">→</div>
@@ -932,7 +955,7 @@ async function AppInit() {
                             width: 45,
                             height: 60,
                             imgSrc: './images/pen.png',
-                            description: 'シンボルパズルから得たペン。',
+                            description: 'シンボルパズルから得たペン。書き心地抜群！',
                             isCollectible: true,
                             maxUsageCount: 1
                         }
@@ -965,7 +988,7 @@ async function AppInit() {
                 width: 70,
                 height: 70,
                 imgSrc: './images/daiza.png',
-                description: '謎の台座．右の状態が太陽のとき，ガラスブロックを置けそうだ．',
+                description: '謎の台座．何かはめるのかな？',
                 isCollectible: false,
                 maxUsageCount: Infinity,
                 onClick: () => {
@@ -1039,7 +1062,7 @@ async function AppInit() {
                                 width: 48,
                                 height: 48,
                                 imgSrc: './images/escape-key.png',
-                                description: '氷から取り出せるようになった鍵。',
+                                description: '氷から取り出せるようになった鍵。キンキンに冷えてやがる！',
                                 isCollectible: true,
                                 maxUsageCount: 1,
                             });
@@ -1063,7 +1086,7 @@ async function AppInit() {
                 width: 200,
                 height: 141,
                 imgSrc: './images/ice-wall.png',
-                description: '巨大な氷の壁．何かで溶かせそうだ．',
+                description: '巨大な氷の壁．中に鍵のようなものが見える．くそ，ビームを出せれば溶かせるのに！か〇はめ波！',
                 isCollectible: false,
                 maxUsageCount: Infinity,
             });

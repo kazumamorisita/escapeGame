@@ -14,6 +14,9 @@ export class GameManager {
     this.rightRoomState = null; // 右部屋の状態: 'sun', 'moon', null
     this.leftRoomState = null;  // 左部屋の状態: 'sun', 'moon', null
     this.rightSunlightReflected = false; // 右で日光が反射済みか
+        // 計測: ゲーム開始時刻とクリア時刻（ISO文字列）
+        this.gameStartAt = null;
+        this.clearedAt = null;
     }
 
     async saveGameState() {
@@ -35,6 +38,8 @@ export class GameManager {
                 rightRoomState: this.rightRoomState, // 右部屋の状態
                 leftRoomState: this.leftRoomState,   // 左部屋の状態
                 rightSunlightReflected: this.rightSunlightReflected, // 右の日光反射状態
+                gameStartAt: this.gameStartAt,
+                clearedAt: this.clearedAt,
                 updatedAt: new Date().toISOString()
             };
             await setDoc(ref, state);
@@ -68,6 +73,8 @@ export class GameManager {
             this.rightRoomState = data.rightRoomState || null;
             this.leftRoomState = data.leftRoomState || null;
             this.rightSunlightReflected = !!data.rightSunlightReflected;
+            this.gameStartAt = data.gameStartAt || this.gameStartAt || null;
+            this.clearedAt = data.clearedAt || this.clearedAt || null;
 
             // オブジェクトの状態を管理
             if (this.objectsManager) {
@@ -127,7 +134,7 @@ export class GameManager {
                             this.objectsManager.addObject({
                                 id: 'paper', view: 'front', x: 70, y: 30, width: 48, height: 48,
                                 imgSrc: './images/paper.png',
-                                description: '謎の申込用紙．名前を書くと太陽シールがもらえるらしい．',
+                                description: '謎の申込用紙．名前を書くと太陽シールがもらえるらしい．(ペンを取得したのち，この画像をタップで記入可能)',
                                 isCollectible: true, maxUsageCount: 1
                             });
                         }
@@ -212,6 +219,8 @@ export class GameManager {
         const selectedItem = this.inventoryManager.getSelectedItem();
         if (!this.isDoorUnlocked && selectedItem && selectedItem.id === 'escape-key') {
             this.isDoorUnlocked = true;
+            // クリア時刻を記録
+            try { this.clearedAt = new Date().toISOString(); } catch {}
             this.uiManager.updateGameUI(true);
             this.uiManager.updateStatus('鍵を使ってドアのロックを解除しました！');
             // アイテムを消費（インベントリから削除）
@@ -345,7 +354,7 @@ export class GameManager {
                 <div class="p-4">
                     <h3 class="text-xl font-bold mb-4">月おじさん</h3>
                     <img src="./images/tuki-ozisan.png" alt="月おじさん" class="w-48 h-48 mx-auto mb-4 rounded">
-                    <p class="text-gray-700">月の財布をくれれば、月の鍵をあげよう。</p>
+                    <p class="text-gray-700">やぁ、私は月おじさん。最近財布を無くしたんだよ。見かけなかったかい？</p>
                 </div>
             `;
             this.uiManager.showPuzzle(content);
@@ -354,7 +363,27 @@ export class GameManager {
 
     checkDoor() {
         if (this.isDoorUnlocked) {
-            this.uiManager.showEscapeMessage('脱出成功！', 'おめでとうございます。進行状況の保存機能も確認できました！');
+            // クリアタイムを算出
+            const start = this.gameStartAt ? new Date(this.gameStartAt).getTime() : null;
+            const end = this.clearedAt ? new Date(this.clearedAt).getTime() : Date.now();
+            let timeText = '';
+            if (start && end && end >= start) {
+                const ms = end - start;
+                const sec = Math.floor(ms / 1000);
+                const h = Math.floor(sec / 3600);
+                const m = Math.floor((sec % 3600) / 60);
+                const s = sec % 60;
+                if (h > 0) {
+                    timeText = `${h}時間${m}分${s}秒`;
+                } else if (m > 0) {
+                    timeText = `${m}分${s}秒`;
+                } else {
+                    timeText = `${s}秒`;
+                }
+            }
+            const baseMsg = 'プレイしてくれてありがとう！脱出ゲームなら喜んでくれるかなと思って今回作るのに挑戦してみたよ！3年目の記念日おめでとう！これからもよろしくね！';
+            const withTime = timeText ? `${baseMsg}\n\nクリアタイム: ${timeText}` : baseMsg;
+            this.uiManager.showEscapeMessage('脱出成功！～おはよう！', withTime);
         } else {
             this.uiManager.updateStatus('ドアはロックされています。どこかに鍵があるはずです...');
         }
@@ -397,7 +426,7 @@ export class GameManager {
                 width: 130,
                 height: 160,
                 imgSrc: './images/tuki-ozisan.png',
-                description: '月の財布をくれれば、月の鍵をあげよう。',
+                description: 'やぁ、私は月おじさん。最近財布を無くしたんだよ。見かけなかったかい？',
                 isCollectible: false,
                 maxUsageCount: 1,
                 onClick: () => this.unlockTukiOzisan(),
@@ -415,6 +444,9 @@ export class GameManager {
         this.rightRoomState = null;
         this.leftRoomState = null;
     this.rightSunlightReflected = false;
+        // タイマー初期化
+        this.gameStartAt = new Date().toISOString();
+        this.clearedAt = null;
         // インベントリを初期化
         if (this.inventoryManager) {
             try {
@@ -446,6 +478,11 @@ export class GameManager {
         if (!this.hasSaveData) {
             this.uiManager.updateStatus('続きからプレイできるデータがありません。', true);
             return;
+        }
+        // セーブ側に開始時刻が無い場合は今から計測開始
+        if (!this.gameStartAt) {
+            this.gameStartAt = new Date().toISOString();
+            this.saveGameState().catch(() => {});
         }
         this.uiManager.updateGameUI(this.isDoorUnlocked);
         this.uiManager.startGame('続きからプレイを再開します。');
