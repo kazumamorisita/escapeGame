@@ -107,22 +107,25 @@ export class GameManager {
                     }
 
                     // 解決済みパズルから出現したオブジェクトを復元
-                    // numeric-safe が解決済みで、kottsun が未収集なら配置
+                    // numeric-safe が解決済みで、未収集の報酬（kottsun, paper）を再配置
                     if (this.objectUsageCounts.get('numeric-safe') >= 1) {
-                        const hasKottsun = data.collectedItems && data.collectedItems.some(item => item && item.id === 'kottsun');
+                        const hasKottsun = Array.isArray(data.collectedItems) && data.collectedItems.some(item => item && item.id === 'kottsun');
+                        const hasPaper   = Array.isArray(data.collectedItems) && data.collectedItems.some(item => item && item.id === 'paper');
+
                         if (!hasKottsun && !this.objectsManager.objects.has('kottsun')) {
-                            // kottsun を再配置
                             this.objectsManager.addObject({
-                                id: 'kottsun',
-                                view: 'front',
-                                x: 80,
-                                y: 30,
-                                width: 48,
-                                height: 48,
+                                id: 'kottsun', view: 'front', x: 80, y: 30, width: 48, height: 48,
                                 imgSrc: './images/nazo.png',
                                 description: 'カワウソのこっつん．お腹がすいているようだ．',
-                                isCollectible: true,
-                                maxUsageCount: 1
+                                isCollectible: true, maxUsageCount: 1
+                            });
+                        }
+                        if (!hasPaper && !this.objectsManager.objects.has('paper')) {
+                            this.objectsManager.addObject({
+                                id: 'paper', view: 'front', x: 70, y: 30, width: 48, height: 48,
+                                imgSrc: './images/nazo.png',
+                                description: '謎の申込用紙．名前を書くと太陽シールがもらえるらしい．',
+                                isCollectible: true, maxUsageCount: 1
                             });
                         }
                     }
@@ -244,6 +247,58 @@ export class GameManager {
         }
     }
 
+    async unlockTukiOzisan() {
+        const selectedItem = this.inventoryManager.getSelectedItem();
+        
+        if (selectedItem && selectedItem.id === 'tuki-osaihu') {
+            // tuki-osaihuが選択されている場合: 月の鍵を取得
+            if (this.inventoryManager.hasItem('tuki-kagi')) {
+                this.uiManager.updateStatus('既に月の鍵を持っています。');
+                return;
+            }
+            
+            this.uiManager.updateStatus('月おじさんに月の財布を渡しました！');
+            // アイテムを消費（インベントリから削除）
+            this.inventoryManager.removeItemById('tuki-osaihu');
+            this.usedItems.add('tuki-osaihu');
+            this.inventoryManager.clearSelection();
+            
+            // tuki-kagiを追加
+            const newItem = {
+                id: 'tuki-kagi',
+                imgSrc: './images/nazo.png',
+                description: '月おじさんからもらった月の鍵。何かに使えそうだ。'
+            };
+            
+            const ok = this.inventoryManager.addItem(newItem);
+            if (ok) {
+                this.uiManager.updateStatus('月の鍵を取得しました。');
+                
+                // tuki-kagiの説明ウィンドウを表示
+                const newSlotIndex = this.inventoryManager.slots.findIndex(item => item && item.id === 'tuki-kagi');
+                if (newSlotIndex !== -1) {
+                    setTimeout(() => {
+                        this.inventoryManager.showItemDescription(newSlotIndex);
+                    }, 100);
+                }
+                
+                await this.saveGameState();
+            } else {
+                this.uiManager.updateStatus('インベントリがいっぱいです。', true);
+            }
+        } else {
+            // 何も選択していない、または別のアイテムを選択している場合: 説明ウィンドウを表示
+            const content = `
+                <div class="p-4">
+                    <h3 class="text-xl font-bold mb-4">月おじさん</h3>
+                    <img src="./images/nazo.png" alt="月おじさん" class="w-48 h-48 mx-auto mb-4 rounded">
+                    <p class="text-gray-700">月の財布をくれれば、月の鍵をあげよう。</p>
+                </div>
+            `;
+            this.uiManager.showPuzzle(content);
+        }
+    }
+
     checkDoor() {
         if (this.isDoorUnlocked) {
             this.uiManager.showEscapeMessage('脱出成功！', 'おめでとうございます。進行状況の保存機能も確認できました！');
@@ -289,12 +344,10 @@ export class GameManager {
                 width: 160,
                 height: 160,
                 imgSrc: './images/nazo.png',
-                description: '月の部屋に住むおじさんです。',
+                description: '月の財布をくれれば、月の鍵をあげよう。',
                 isCollectible: false,
                 maxUsageCount: 1,
-                onClick: () => {
-                    this.uiManager.updateStatus('月おじさん: 「ここは月の部屋だよ。」');
-                }
+                onClick: () => this.unlockTukiOzisan(),
             });
         }
     }

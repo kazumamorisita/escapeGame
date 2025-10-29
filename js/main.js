@@ -406,6 +406,157 @@ async function AppInit() {
         }
         
 
+        if (!gameObjectManager.objects.has('tansu-tuki') && !gameObjectManager.objects.has('tansu-tuki-opened')) {
+            const inv = gameManager.inventoryManager;
+            const isOpened = (
+                (inv && typeof inv.hasItem === 'function' && inv.hasItem('akuriru-picture')) ||
+                (gameManager && gameManager.usedItems && gameManager.usedItems.has('tuki-kagi'))
+            );
+
+            const applyOpenedVisual = (objId) => {
+                const entry = gameObjectManager.objects.get(objId);
+                if (!entry) return;
+                try {
+                    const badge = document.createElement('div');
+                    badge.textContent = '開';
+                    badge.style.position = 'absolute';
+                    badge.style.top = '6px';
+                    badge.style.left = '6px';
+                    badge.style.padding = '2px 6px';
+                    badge.style.background = 'rgba(255,215,0,0.95)';
+                    badge.style.color = '#111';
+                    badge.style.fontWeight = 'bold';
+                    badge.style.borderRadius = '4px';
+                    badge.style.boxShadow = '0 1px 2px rgba(0,0,0,0.25)';
+                    badge.style.zIndex = '40';
+                    entry.container.appendChild(badge);
+                    const img = entry.container.querySelector('img');
+                    if (img) img.style.filter = 'brightness(0.85)';
+                } catch (e) {
+                    console.error('applyOpenedVisual error', e);
+                }
+            };
+
+            if (isOpened) {
+                gameObjectManager.addObject({
+                    id: 'tansu-tuki-opened',
+                    view: 'front',
+                    x: 20,
+                    y: 30,
+                    width: 120,
+                    height: 80,
+                    imgSrc: './images/nazo.png',
+                    description: '開いた月のタンス。中身は空だ。',
+                    isCollectible: false,
+                    maxUsageCount: Infinity,
+                    onClick: () => {
+                        uiManager.updateStatus('もう中身は空のようだ。');
+                        const content = `
+                            <div class="p-4">
+                                <h3 class="text-xl font-bold mb-4">開いた月のタンス</h3>
+                                <img src="./images/nazo.png" alt="開いた月のタンス" class="w-48 h-48 mx-auto mb-4 rounded">
+                                <p class="text-gray-700">中には何も残っていない。</p>
+                            </div>
+                        `;
+                        uiManager.showPuzzle(content);
+                    }
+                });
+                // 見た目変更を適用
+                setTimeout(() => applyOpenedVisual('tansu-tuki-opened'), 0);
+            } else {
+                gameObjectManager.addObject({
+                    id: 'tansu-tuki',
+                    view: 'front',
+                    x: 20,
+                    y: 30,
+                    width: 120,
+                    height: 80,
+                    imgSrc: './images/nazo.png',
+                    description: '月の鍵穴のついたタンスだ。',
+                    isCollectible: false,
+                    maxUsageCount: Infinity,
+                    onClick: () => {
+                        const inv2 = gameManager.inventoryManager;
+                        const selected = inv2 && typeof inv2.getSelectedItem === 'function' ? inv2.getSelectedItem() : null;
+
+                        if (selected && selected.id === 'tuki-kagi') {
+                            // 既に取得済みなら鍵を消費せずメッセージのみ
+                            if (inv2 && typeof inv2.hasItem === 'function' && inv2.hasItem('akuriru-picture')) {
+                                uiManager.updateStatus('もう中身は空のようだ。');
+                                return;
+                            }
+
+                            uiManager.updateStatus('鍵を使ってタンスを開けた。中からアクリル絵を見つけた。');
+
+                            // 鍵を消費
+                            if (typeof inv2.removeItemById === 'function') inv2.removeItemById('tuki-kagi');
+                            if (gameManager && gameManager.usedItems) gameManager.usedItems.add('tuki-kagi');
+                            if (typeof inv2.clearSelection === 'function') inv2.clearSelection();
+
+                            // アイテム付与
+                            const newItem = {
+                                id: 'akuriru-picture',
+                                imgSrc: './images/nazo.png',
+                                description: '月のタンスから見つけたアクリル絵。'
+                            };
+                            const ok = typeof inv2.addItem === 'function' ? inv2.addItem(newItem) : false;
+                            if (ok) {
+                                const idx = inv2.slots.findIndex(it => it && it.id === 'akuriru-picture');
+                                if (idx !== -1 && typeof inv2.showItemDescription === 'function') {
+                                    setTimeout(() => inv2.showItemDescription(idx), 100);
+                                }
+                            } else {
+                                uiManager.updateStatus('インベントリがいっぱいです。', true);
+                            }
+
+                            // 見た目変更: opened に差し替え
+                            gameObjectManager.removeObject('tansu-tuki');
+                            gameObjectManager.addObject({
+                                id: 'tansu-tuki-opened',
+                                view: 'front',
+                                x: 20,
+                                y: 30,
+                                width: 120,
+                                height: 80,
+                                imgSrc: './images/nazo.png',
+                                description: '開いた月のタンス。中身は空だ。',
+                                isCollectible: false,
+                                maxUsageCount: Infinity,
+                                onClick: () => {
+                                    uiManager.updateStatus('もう中身は空のようだ。');
+                                    const content = `
+                                        <div class="p-4">
+                                            <h3 class="text-xl font-bold mb-4">開いた月のタンス</h3>
+                                            <img src="./images/nazo.png" alt="開いた月のタンス" class="w-48 h-48 mx-auto mb-4 rounded">
+                                            <p class="text-gray-700">中には何も残っていない。</p>
+                                        </div>
+                                    `;
+                                    uiManager.showPuzzle(content);
+                                }
+                            });
+                            setTimeout(() => applyOpenedVisual('tansu-tuki-opened'), 0);
+
+                            // 保存
+                            if (gameManager && typeof gameManager.saveGameState === 'function') {
+                                gameManager.saveGameState().catch(e => console.error('save error', e));
+                            }
+                            return;
+                        }
+
+                        // 説明ウィンドウ（鍵未選択時）
+                        const content = `
+                            <div class="p-4">
+                                <h3 class="text-xl font-bold mb-4">月のタンス</h3>
+                                <img src="./images/nazo.png" alt="月のタンス" class="w-48 h-48 mx-auto mb-4 rounded">
+                                <p class="text-gray-700">月の鍵で開きそうだ。</p>
+                            </div>
+                        `;
+                        uiManager.showPuzzle(content);
+                    }
+                });
+            }
+        }
+
         //オブジェクト(left)
         // 左部屋の状態インジケーター
         if (!gameObjectManager.objects.has('left-room-indicator')) {
@@ -505,12 +656,10 @@ async function AppInit() {
                 width: 160,
                 height: 160,
                 imgSrc: './images/nazo.png',
-                description: '月の部屋に住むおじさんです。',
+                description: '月の財布をくれれば、月の鍵をあげよう。',
                 isCollectible: false,
                 maxUsageCount: 1,
-                onClick: () => {
-                    uiManager.updateStatus('月おじさん: 「ここは月の部屋だよ。」');
-                }
+                onClick: () => gameManager.unlockTukiOzisan(),
             });
         }
 
@@ -617,6 +766,21 @@ async function AppInit() {
                         }
                     ]
                 }
+            });
+        }
+
+        if (!gameObjectManager.objects.has('tuki-osaihu') && gameManager.rightRoomState === 'moon') {
+            gameObjectManager.addObject({
+                id: 'tuki-osaihu',
+                view: 'right',
+                x: 60,
+                y: 30,
+                width: 160,
+                height: 160,
+                imgSrc: './images/nazo.png',
+                description: '月の模様があるお財布．中に免許証が入っている．名前:月おじさん...',
+                isCollectible: true,
+                maxUsageCount: 1,
             });
         }
     }
