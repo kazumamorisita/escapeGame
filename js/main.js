@@ -485,6 +485,7 @@ async function AppInit() {
         if (!gameObjectManager.objects.has('solved-box')) {
             gameObjectManager.addObject({
                 id: 'solved-box',
+                displayName:'解かれた金庫',
                 view: 'front',
                 x: 80,
                 y: 30,
@@ -500,6 +501,7 @@ async function AppInit() {
         if (!gameObjectManager.objects.has('picture')) {
             gameObjectManager.addObject({
                 id: 'picture',
+                displayName: '付き合った日の写真',
                 view: 'front',
                 x: 80,
                 y: 17,
@@ -554,12 +556,12 @@ async function AppInit() {
                     },
                     spawnObjects: [
                         {
-                            id: 'kottsun', view: 'front', x: 80, y: 30, width: 48, height: 50,
+                            id: 'kottsun', displayName: 'カワウソのこっつん', view: 'front', x: 80, y: 30, width: 48, height: 50,
                                 imgSrc: './images/kottsun.png', description: 'カワウソのこっつん．お腹がすいているようだ．', isCollectible: true,
                                 maxUsageCount: 1
                         },
                         {
-                            id: 'paper', view: 'front', x: 70, y: 30, width: 48, height: 48,
+                            id: 'paper', displayName: '謎の申込用紙', view: 'front', x: 70, y: 30, width: 48, height: 48,
                             imgSrc: './images/paper.png',
                             description: '謎の申込用紙．名前を書くと太陽シールがもらえるらしい．(ペンを取得したのち，この画像をタップで記入可能)',
                             isCollectible: true,
@@ -605,6 +607,7 @@ async function AppInit() {
             if (isOpened) {
                 gameObjectManager.addObject({
                     id: 'tansu-tuki-opened',
+                    displayName: '開いた月のタンス',
                     view: 'front',
                     x: 20,
                     y: 31,
@@ -631,6 +634,7 @@ async function AppInit() {
             } else {
                 gameObjectManager.addObject({
                     id: 'tansu-tuki',
+                    displayName: '月のタンス',
                     view: 'front',
                     x: 20,
                     y: 31,
@@ -661,6 +665,7 @@ async function AppInit() {
                             // アイテム付与
                             const newItem = {
                                 id: 'akuriru-picture',
+                                displayName: 'ガラスブロック',
                                 imgSrc: './images/akuriru-picture.png',
                                 description: '月のタンスから見つけたガラスブロック。とてもピカピカしている'
                             };
@@ -678,6 +683,7 @@ async function AppInit() {
                             gameObjectManager.removeObject('tansu-tuki');
                             gameObjectManager.addObject({
                                 id: 'tansu-tuki-opened',
+                                displayName: '開いた月のタンス',
                                 view: 'front',
                                 x: 20,
                                 y: 31,
@@ -725,6 +731,7 @@ async function AppInit() {
         if (!gameObjectManager.objects.has('tansu-1')) {
             gameObjectManager.addObject({
                 id: 'tansu-1',
+                displayName: 'うんちくタンス1号',
                 view: 'front',
                 x: 20,
                 y: 20,
@@ -740,6 +747,7 @@ async function AppInit() {
         if (!gameObjectManager.objects.has('tansu-2')) {
             gameObjectManager.addObject({
                 id: 'tansu-2',
+                displayName: 'うんちくタンス2号',
                 view: 'front',
                 x: 20,
                 y: 10,
@@ -778,6 +786,7 @@ async function AppInit() {
         if (!gameObjectManager.objects.has('left-object')) {
             gameObjectManager.addObject({
                 id: 'left-object',
+                displayName: '水槽の土台',
                 view: 'left',
                 x: 20,
                 y: 41,
@@ -794,6 +803,7 @@ async function AppInit() {
         if (!gameObjectManager.objects.has('unlockedSuisou')) {
             gameObjectManager.addObject({
                 id: 'unlockedSuisou',
+                displayName: '解放された水槽',
                 view: 'left',
                 x: 20,
                 y: 30,
@@ -810,6 +820,7 @@ async function AppInit() {
         if (!gameObjectManager.objects.has('suisou')) {
             gameObjectManager.addObject({
                 id: 'suisou',
+                displayName: '水槽と魚',
                 view: 'left',
                 x: 20,
                 y: 30,
@@ -828,6 +839,7 @@ async function AppInit() {
             (gameManager.leftRoomState === null || gameManager.leftRoomState === 'sun')) {
             gameObjectManager.addObject({
                 id: 'taiyou-ozisan',
+                displayName: '太陽おじさん',
                 view: 'left',
                 x: 60,
                 y: 30,
@@ -845,6 +857,7 @@ async function AppInit() {
         if (!gameObjectManager.objects.has('tuki-ozisan') && gameManager.leftRoomState === 'moon') {
             gameObjectManager.addObject({
                 id: 'tuki-ozisan',
+                displayName: '月おじさん',
                 view: 'left',
                 x: 60,
                 y: 30,
@@ -949,6 +962,7 @@ async function AppInit() {
                     spawnObjects: [
                         {
                             id: 'pen',
+                            displayName: '書き心地抜群のペン',
                             view: 'right',
                             x: 80,
                             y: 41,
@@ -967,6 +981,7 @@ async function AppInit() {
         if (!gameObjectManager.objects.has('tuki-osaihu') && gameManager.rightRoomState === 'moon') {
             gameObjectManager.addObject({
                 id: 'tuki-osaihu',
+                displayName: '月のお財布',
                 view: 'right',
                 x: 60,
                 y: 30,
@@ -982,6 +997,7 @@ async function AppInit() {
         if (!gameObjectManager.objects.has('daiza')) {
             gameObjectManager.addObject({
                 id: 'daiza',
+                displayName: '謎の台座',
                 view: 'right',
                 x: 50,
                 y: 60,
@@ -1056,6 +1072,7 @@ async function AppInit() {
                         if (!gameObjectManager.objects.has('escape-key')) {
                             gameObjectManager.addObject({
                                 id: 'escape-key',
+                                displayName: '目覚めの鍵',
                                 view: 'right',
                                 x: 30,
                                 y: 30,
@@ -1080,6 +1097,7 @@ async function AppInit() {
         if (!gameObjectManager.objects.has('ice-wall')) {
             gameObjectManager.addObject({
                 id: 'ice-wall',
+                displayName: '巨大な氷の壁',
                 view: 'right',
                 x: 30,
                 y: 30,

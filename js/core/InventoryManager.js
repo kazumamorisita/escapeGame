@@ -64,7 +64,8 @@ export class InventoryManager {
 
         // 選択状態を通知
         const selectedItem = this.slots[slotIndex];
-        this.uiManager.updateStatus(`${selectedItem.id}を選択中`);
+        const displayText = selectedItem.displayName || selectedItem.id;
+        this.uiManager.updateStatus(`${displayText}を選択中`);
     }
 
     clearSelection() {
@@ -84,6 +85,7 @@ export class InventoryManager {
             return false;
         }
 
+        // displayName が未指定ならインベントリ内でもそのままキープ（インベントリに入れた時点で保持）
         this.slots[emptySlot] = item;
         this.updateSlotUI(emptySlot, item);
         return true;
@@ -108,9 +110,10 @@ export class InventoryManager {
         const item = this.slots[slotIndex];
         if (!item) return;
 
+        const titleText = item.displayName || item.id; // displayName が指定されていればそれを使用、なければ id
         const content = `
             <div class="p-4">
-                <h3 class="text-xl font-bold mb-4">${item.id}</h3>
+                <h3 class="text-xl font-bold mb-4">${titleText}</h3>
                 <img src="${item.imgSrc}" alt="${item.id}" class="w-48 h-48 mx-auto mb-4 rounded cursor-pointer" data-item-id="${item.id}">
                 <p class="text-gray-700">${item.description || 'アイテムの説明がありません。'}</p>
             </div>
@@ -138,7 +141,7 @@ export class InventoryManager {
                             this.removeItemById('paper');
 
                             const newItem = {
-                                id: 'paper-filled',
+                                id: 'paper-filled', displayName: '記入済みの申込書',
                                 imgSrc: './images/paper-filled.png',
                                 description: '記入済みの申込書。提出できそうだ。'
                             };
@@ -187,14 +190,14 @@ export class InventoryManager {
     }
 
     toArray() {
-        return this.slots.map(item => item ? { id: item.id, imgSrc: item.imgSrc, description: item.description } : null);
+        return this.slots.map(item => item ? { id: item.id, imgSrc: item.imgSrc, description: item.description, displayName: item.displayName } : null);
     }
 
     loadFromArray(arr) {
         if (!Array.isArray(arr)) return;
         for (let i = 0; i < this.slots.length; i++) {
             const v = arr[i] || null;
-            this.slots[i] = v ? { id: v.id, imgSrc: v.imgSrc, description: v.description } : null;
+            this.slots[i] = v ? { id: v.id, imgSrc: v.imgSrc, description: v.description, displayName: v.displayName } : null;
             this.updateSlotUI(i, this.slots[i]);
         }
         // 選択状態はリセット

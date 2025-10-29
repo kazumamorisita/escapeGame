@@ -13,6 +13,7 @@ export class GameObjectManager {
             id, view = 'front', x = 50, y = 50, 
             width = 80, height = 80, imgSrc = '',
             description = '',
+            displayName = null, // 説明ウィンドウに表示するタイトル（未指定時はidを使用）
             isCollectible = false,
             maxUsageCount = Infinity, // デフォルトは無限回使用可能
             onClick = null,
@@ -54,9 +55,10 @@ export class GameObjectManager {
         container.addEventListener('click', (e) => {
             e.stopPropagation();
             if (isCollectible) {
-                if (this.inventoryManager.addItem({ id, imgSrc, description })) {
+                if (this.inventoryManager.addItem({ id, imgSrc, description, displayName })) {
                     this.removeObject(id);
-                    this.uiManager.updateStatus(`${id}を取得しました。`);
+                    const statusText = displayName || id;
+                    this.uiManager.updateStatus(`${statusText}を取得しました。`);
                     
                     // 使用回数をインクリメント
                     if (this.gameManager && this.gameManager.objectUsageCounts) {
@@ -155,9 +157,10 @@ export class GameObjectManager {
                 return;
             }
             if (this.uiManager && this.uiManager.showPuzzle) {
+                const titleText = displayName || id; // displayName が指定されていればそれを使用、なければ id
                 const content = `
             <div class="p-4" id="${id}">
-                <h3 class="text-xl font-bold mb-4">${id}</h3>
+                <h3 class="text-xl font-bold mb-4">${titleText}</h3>
                 <img src="${imgSrc}" alt="${id}" class="w-48 h-48 mx-auto mb-4 rounded">
                 <p class="text-gray-700">${description || 'アイテムの説明がありません。'}</p>
             </div>

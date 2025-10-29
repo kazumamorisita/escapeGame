@@ -124,7 +124,8 @@ export class GameManager {
 
                         if (!hasKottsun && !this.objectsManager.objects.has('kottsun')) {
                             this.objectsManager.addObject({
-                                id: 'kottsun', view: 'front', x: 80, y: 30, width: 48, height: 48,
+                                id: 'kottsun', displayName: 'カワウソのこっつん',
+                                view: 'front', x: 80, y: 30, width: 48, height: 48,
                                 imgSrc: './images/kottsun.png',
                                 description: 'カワウソのこっつん．お腹がすいているようだ．',
                                 isCollectible: true, maxUsageCount: 1
@@ -132,7 +133,8 @@ export class GameManager {
                         }
                         if (!hasPaper && !this.objectsManager.objects.has('paper')) {
                             this.objectsManager.addObject({
-                                id: 'paper', view: 'front', x: 70, y: 30, width: 48, height: 48,
+                                id: 'paper', displayName: '謎の申込用紙',
+                                view: 'front', x: 70, y: 30, width: 48, height: 48,
                                 imgSrc: './images/paper.png',
                                 description: '謎の申込用紙．名前を書くと太陽シールがもらえるらしい．(ペンを取得したのち，この画像をタップで記入可能)',
                                 isCollectible: true, maxUsageCount: 1
@@ -145,7 +147,8 @@ export class GameManager {
                         const hasEscapeKey = Array.isArray(data.collectedItems) && data.collectedItems.some(item => item && item.id === 'escape-key');
                         if (!hasEscapeKey && !this.objectsManager.objects.has('escape-key')) {
                             this.objectsManager.addObject({
-                                id: 'escape-key', view: 'right', x: 30, y: 30, width: 48, height: 48,
+                                id: 'escape-key', displayName: '目覚めの鍵',
+                                view: 'right', x: 30, y: 30, width: 48, height: 48,
                                 imgSrc: './images/escape-key.png',
                                 description: '氷の壁から取り出せるようになった鍵。',
                                 isCollectible: true, maxUsageCount: 1
@@ -275,7 +278,7 @@ export class GameManager {
             
             // taiyou-si-ruを追加
             const newItem = {
-                id: 'taiyou-si-ru',
+                id: 'taiyou-si-ru', displayName: '太陽シール',
                 imgSrc: './images/taiyou-si-ru.png',
                 description: '太陽おじさんからもらった太陽シール。何かに使えそうだ。'
             };
@@ -327,7 +330,7 @@ export class GameManager {
             
             // tuki-kagiを追加
             const newItem = {
-                id: 'tuki-kagi',
+                id: 'tuki-kagi', displayName: '月の鍵',
                 imgSrc: './images/tuki-kagi.png',
                 description: '月おじさんからもらった月の鍵。何かに使えそうだ。'
             };
@@ -404,6 +407,7 @@ export class GameManager {
             if (usageCount === 0) {
                 this.objectsManager.addObject({
                     id: 'taiyou-ozisan',
+                    displayName: '太陽おじさん',
                     view: 'left',
                     x: 60,
                     y: 30,
@@ -420,6 +424,7 @@ export class GameManager {
             // 月おじさんを配置
             this.objectsManager.addObject({
                 id: 'tuki-ozisan',
+                displayName: '月おじさん',
                 view: 'left',
                 x: 60,
                 y: 30,
