@@ -118,7 +118,7 @@ export class GameManager {
                         if (!hasKottsun && !this.objectsManager.objects.has('kottsun')) {
                             this.objectsManager.addObject({
                                 id: 'kottsun', view: 'front', x: 80, y: 30, width: 48, height: 48,
-                                imgSrc: './images/nazo.png',
+                                imgSrc: './images/kottsun.png',
                                 description: 'カワウソのこっつん．お腹がすいているようだ．',
                                 isCollectible: true, maxUsageCount: 1
                             });
@@ -126,7 +126,7 @@ export class GameManager {
                         if (!hasPaper && !this.objectsManager.objects.has('paper')) {
                             this.objectsManager.addObject({
                                 id: 'paper', view: 'front', x: 70, y: 30, width: 48, height: 48,
-                                imgSrc: './images/nazo.png',
+                                imgSrc: './images/paper.png',
                                 description: '謎の申込用紙．名前を書くと太陽シールがもらえるらしい．',
                                 isCollectible: true, maxUsageCount: 1
                             });
@@ -139,7 +139,7 @@ export class GameManager {
                         if (!hasEscapeKey && !this.objectsManager.objects.has('escape-key')) {
                             this.objectsManager.addObject({
                                 id: 'escape-key', view: 'right', x: 30, y: 30, width: 48, height: 48,
-                                imgSrc: './images/nazo.png',
+                                imgSrc: './images/escape-key.png',
                                 description: '氷の壁から取り出せるようになった鍵。',
                                 isCollectible: true, maxUsageCount: 1
                             });
@@ -267,7 +267,7 @@ export class GameManager {
             // taiyou-si-ruを追加
             const newItem = {
                 id: 'taiyou-si-ru',
-                imgSrc: './images/nazo.png',
+                imgSrc: './images/taiyou-si-ru.png',
                 description: '太陽おじさんからもらった太陽シール。何かに使えそうだ。'
             };
             
@@ -292,7 +292,7 @@ export class GameManager {
             const content = `
                 <div class="p-4">
                     <h3 class="text-xl font-bold mb-4">太陽おじさん</h3>
-                    <img src="./images/nazo.png" alt="太陽おじさん" class="w-48 h-48 mx-auto mb-4 rounded">
+                    <img src="./images/taiyou-ozisan.png" alt="太陽おじさん" class="w-48 h-48 mx-auto mb-4 rounded">
                     <p class="text-gray-700">記入済みの申込書をくれれば、太陽シールをあげよう。</p>
                 </div>
             `;
@@ -319,7 +319,7 @@ export class GameManager {
             // tuki-kagiを追加
             const newItem = {
                 id: 'tuki-kagi',
-                imgSrc: './images/nazo.png',
+                imgSrc: './images/tuki-kagi.png',
                 description: '月おじさんからもらった月の鍵。何かに使えそうだ。'
             };
             
@@ -344,7 +344,7 @@ export class GameManager {
             const content = `
                 <div class="p-4">
                     <h3 class="text-xl font-bold mb-4">月おじさん</h3>
-                    <img src="./images/nazo.png" alt="月おじさん" class="w-48 h-48 mx-auto mb-4 rounded">
+                    <img src="./images/tuki-ozisan.png" alt="月おじさん" class="w-48 h-48 mx-auto mb-4 rounded">
                     <p class="text-gray-700">月の財布をくれれば、月の鍵をあげよう。</p>
                 </div>
             `;
@@ -378,9 +378,9 @@ export class GameManager {
                     view: 'left',
                     x: 60,
                     y: 30,
-                    width: 160,
+                    width: 130,
                     height: 160,
-                    imgSrc: './images/nazo.png',
+                    imgSrc: './images/taiyou-ozisan.png',
                     description: '記入済みの申込書をくれれば，太陽シールをあげよう．',
                     isCollectible: false,
                     maxUsageCount: 1,
@@ -394,9 +394,9 @@ export class GameManager {
                 view: 'left',
                 x: 60,
                 y: 30,
-                width: 160,
+                width: 130,
                 height: 160,
-                imgSrc: './images/nazo.png',
+                imgSrc: './images/tuki-ozisan.png',
                 description: '月の財布をくれれば、月の鍵をあげよう。',
                 isCollectible: false,
                 maxUsageCount: 1,

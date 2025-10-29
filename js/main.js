@@ -239,11 +239,11 @@ async function AppInit() {
             gameObjectManager.addObject({
                 id: 'seal-puzzle',
                 view: 'front',
-                x: 30,
-                y: 55,
+                x: 50,
+                y: 80,
                 width: 120,
-                height: 80,
-                imgSrc: './images/nazo.png',
+                height: 120,
+                imgSrc: './images/seal-puzzle.PNG',
                 description: '2つの四角が描かれた謎の装置。シールを配置できそうだ。',
                 isPuzzle: true,
                 maxUsageCount: Infinity, // 何度でも使用可能
@@ -467,8 +467,23 @@ async function AppInit() {
                 y: 30,
                 width: 120,
                 height: 80,
-                imgSrc: './images/nazo.png',
+                imgSrc: './images/solved-box.png',
                 description: '解かれた後の金庫．中にはもう何もないようだ．',
+                isCollectible: false,
+                    maxUsageCount: 1,
+            });
+        }
+
+        if (!gameObjectManager.objects.has('picture')) {
+            gameObjectManager.addObject({
+                id: 'picture',
+                view: 'front',
+                x: 80,
+                y: 17,
+                width: 120,
+                height: 90,
+                imgSrc: './images/picture.png',
+                description: '付き合った日の写真だ．',
                 isCollectible: false,
                     maxUsageCount: 1,
             });
@@ -484,7 +499,7 @@ async function AppInit() {
                 y: 30,
                 width: 120,
                 height: 80,
-                imgSrc: './images/nazo.png',
+                imgSrc: './images/numeric-safe.png',
                 description: '古い金庫。ダイヤルで開ける必要がある。',
                 isPuzzle: true,
                     maxUsageCount: 1,
@@ -516,13 +531,13 @@ async function AppInit() {
                     },
                     spawnObjects: [
                         {
-                            id: 'kottsun', view: 'front', x: 80, y: 30, width: 48, height: 48,
-                                imgSrc: './images/nazo.png', description: 'カワウソのこっつん．お腹がすいているようだ．', isCollectible: true,
+                            id: 'kottsun', view: 'front', x: 80, y: 30, width: 48, height: 50,
+                                imgSrc: './images/kottsun.png', description: 'カワウソのこっつん．お腹がすいているようだ．', isCollectible: true,
                                 maxUsageCount: 1
                         },
                         {
                             id: 'paper', view: 'front', x: 70, y: 30, width: 48, height: 48,
-                            imgSrc: './images/nazo.png',
+                            imgSrc: './images/paper.png',
                             description: '謎の申込用紙．名前を書くと太陽シールがもらえるらしい．',
                             isCollectible: true,
                             maxUsageCount: 1
@@ -569,10 +584,10 @@ async function AppInit() {
                     id: 'tansu-tuki-opened',
                     view: 'front',
                     x: 20,
-                    y: 30,
+                    y: 31,
                     width: 120,
                     height: 80,
-                    imgSrc: './images/nazo.png',
+                    imgSrc: './images/tansu-tuki-opened.png',
                     description: '開いた月のタンス。中身は空だ。',
                     isCollectible: false,
                     maxUsageCount: Infinity,
@@ -581,7 +596,7 @@ async function AppInit() {
                         const content = `
                             <div class="p-4">
                                 <h3 class="text-xl font-bold mb-4">開いた月のタンス</h3>
-                                <img src="./images/nazo.png" alt="開いた月のタンス" class="w-48 h-48 mx-auto mb-4 rounded">
+                                <img src="./images/tansu-tuki-opened.png" alt="開いた月のタンス" class="w-48 h-48 mx-auto mb-4 rounded">
                                 <p class="text-gray-700">中には何も残っていない。</p>
                             </div>
                         `;
@@ -595,10 +610,10 @@ async function AppInit() {
                     id: 'tansu-tuki',
                     view: 'front',
                     x: 20,
-                    y: 30,
+                    y: 31,
                     width: 120,
                     height: 80,
-                    imgSrc: './images/nazo.png',
+                    imgSrc: './images/tansu-tuki.png',
                     description: '月の鍵穴のついたタンスだ。',
                     isCollectible: false,
                     maxUsageCount: Infinity,
@@ -613,7 +628,7 @@ async function AppInit() {
                                 return;
                             }
 
-                            uiManager.updateStatus('鍵を使ってタンスを開けた。中からアクリル絵を見つけた。');
+                            uiManager.updateStatus('鍵を使ってタンスを開けた。中からガラスブロックを見つけた。');
 
                             // 鍵を消費
                             if (typeof inv2.removeItemById === 'function') inv2.removeItemById('tuki-kagi');
@@ -623,8 +638,8 @@ async function AppInit() {
                             // アイテム付与
                             const newItem = {
                                 id: 'akuriru-picture',
-                                imgSrc: './images/nazo.png',
-                                description: '月のタンスから見つけたアクリル絵。'
+                                imgSrc: './images/akuriru-picture.png',
+                                description: '月のタンスから見つけたガラスブロック。'
                             };
                             const ok = typeof inv2.addItem === 'function' ? inv2.addItem(newItem) : false;
                             if (ok) {
@@ -642,10 +657,10 @@ async function AppInit() {
                                 id: 'tansu-tuki-opened',
                                 view: 'front',
                                 x: 20,
-                                y: 30,
+                                y: 31,
                                 width: 120,
                                 height: 80,
-                                imgSrc: './images/nazo.png',
+                                imgSrc: './images/tansu-tuki-opened.png',
                                 description: '開いた月のタンス。中身は空だ。',
                                 isCollectible: false,
                                 maxUsageCount: Infinity,
@@ -654,7 +669,7 @@ async function AppInit() {
                                     const content = `
                                         <div class="p-4">
                                             <h3 class="text-xl font-bold mb-4">開いた月のタンス</h3>
-                                            <img src="./images/nazo.png" alt="開いた月のタンス" class="w-48 h-48 mx-auto mb-4 rounded">
+                                            <img src="./images/tansu-tuki-opened.png" alt="開いた月のタンス" class="w-48 h-48 mx-auto mb-4 rounded">
                                             <p class="text-gray-700">中には何も残っていない。</p>
                                         </div>
                                     `;
@@ -674,7 +689,7 @@ async function AppInit() {
                         const content = `
                             <div class="p-4">
                                 <h3 class="text-xl font-bold mb-4">月のタンス</h3>
-                                <img src="./images/nazo.png" alt="月のタンス" class="w-48 h-48 mx-auto mb-4 rounded">
+                                <img src="./images/tansu-tuki.png" alt="月のタンス" class="w-48 h-48 mx-auto mb-4 rounded">
                                 <p class="text-gray-700">月の鍵で開きそうだ。</p>
                             </div>
                         `;
@@ -682,6 +697,36 @@ async function AppInit() {
                     }
                 });
             }
+        }
+
+        if (!gameObjectManager.objects.has('tansu-1')) {
+            gameObjectManager.addObject({
+                id: 'tansu-1',
+                view: 'front',
+                x: 20,
+                y: 20,
+                width: 120,
+                height: 80,
+                imgSrc: './images/tansu-1.png',
+                description: 'TANSU-1。特に何もないようだ。',
+                isCollectible: false,
+                maxUsageCount: 1,
+            });
+        }
+
+        if (!gameObjectManager.objects.has('tansu-2')) {
+            gameObjectManager.addObject({
+                id: 'tansu-2',
+                view: 'front',
+                x: 20,
+                y: 10,
+                width: 120,
+                height: 80,
+                imgSrc: './images/tansu-2.png',
+                description: 'TANSU-2。特に何もないようだ。',
+                isCollectible: false,
+                maxUsageCount: 1,
+            });
         }
 
         //オブジェクト(left)
@@ -694,7 +739,7 @@ async function AppInit() {
                 y: 10,
                 width: 60,
                 height: 60,
-                imgSrc: './images/nazo.png',
+                imgSrc: './images/indicator.png',
                 description: '左部屋の状態を示すインジケーター',
                 isCollectible: false,
                 maxUsageCount: Infinity,
@@ -715,7 +760,7 @@ async function AppInit() {
                 y: 41,
                 width: 80,
                 height: 80,
-                imgSrc: './images/nazo.png',
+                imgSrc: './images/left-object.png',
                 description: '左側の不思議な箱です。',
                 isCollectible: false,
                 maxUsageCount: 1,
@@ -731,7 +776,7 @@ async function AppInit() {
                 y: 30,
                 width: 80,
                 height: 80,
-                imgSrc: './images/nazo.png',
+                imgSrc: './images/unlockedSuisou.png',
                 description: '魚がいなくなって何か見えるようになった．',
                 isCollectible: false,
                 maxUsageCount: 1,
@@ -747,7 +792,7 @@ async function AppInit() {
                 y: 30,
                 width: 80,
                 height: 80,
-                imgSrc: './images/nazo.png',
+                imgSrc: './images/suiou.png',
                 description: '左側の不思議な箱です。',
                 isCollectible: false,
                 maxUsageCount: 1,
@@ -763,9 +808,9 @@ async function AppInit() {
                 view: 'left',
                 x: 60,
                 y: 30,
-                width: 160,
+                width: 133,
                 height: 160,
-                imgSrc: './images/nazo.png',
+                imgSrc: './images/taiyou-ozisan.png',
                 description: '記入済みの申込書をくれれば，太陽シールをあげよう．',
                 isCollectible: false,
                 maxUsageCount: 1,
@@ -780,9 +825,9 @@ async function AppInit() {
                 view: 'left',
                 x: 60,
                 y: 30,
-                width: 160,
+                width: 133,
                 height: 160,
-                imgSrc: './images/nazo.png',
+                imgSrc: './images/tuki-ozisan.png',
                 description: '月の財布をくれれば、月の鍵をあげよう。',
                 isCollectible: false,
                 maxUsageCount: 1,
@@ -800,7 +845,7 @@ async function AppInit() {
                 y: 10,
                 width: 60,
                 height: 60,
-                imgSrc: './images/nazo.png',
+                imgSrc: './images/indicator.png',
                 description: '右部屋の状態を示すインジケーター',
                 isCollectible: false,
                 maxUsageCount: Infinity,
@@ -819,9 +864,9 @@ async function AppInit() {
                 view: 'right',
                 x: 80,
                 y: 41,
-                width: 80,
-                height: 80,
-                imgSrc: './images/nazo.png',
+                width: 90,
+                height: 29,
+                imgSrc: './images/right-object.png',
                 description: 'シンボルが描かれた謎の装置。',
                 isPuzzle: true,
                 maxUsageCount: 1,
@@ -831,19 +876,19 @@ async function AppInit() {
                         <p class="text-gray-600 mb-4">各シンボルに対応する数字をタップで選択してください</p>
                         <div class="flex justify-center gap-3 mb-6">
                             <div class="symbol-digit text-center">
-                                <div class="text-4xl mb-2">🌙</div>
+                                <div class="text-4xl mb-2">→</div>
                                 <button id="digit-0" class="w-16 h-16 bg-blue-500 text-white text-2xl font-bold rounded-lg hover:bg-blue-600 active:scale-95 transition">0</button>
                             </div>
                             <div class="symbol-digit text-center">
-                                <div class="text-4xl mb-2">⭐</div>
+                                <div class="text-4xl mb-2">↓</div>
                                 <button id="digit-1" class="w-16 h-16 bg-blue-500 text-white text-2xl font-bold rounded-lg hover:bg-blue-600 active:scale-95 transition">0</button>
                             </div>
                             <div class="symbol-digit text-center">
-                                <div class="text-4xl mb-2">☀️</div>
+                                <div class="text-4xl mb-2">↑</div>
                                 <button id="digit-2" class="w-16 h-16 bg-blue-500 text-white text-2xl font-bold rounded-lg hover:bg-blue-600 active:scale-95 transition">0</button>
                             </div>
                             <div class="symbol-digit text-center">
-                                <div class="text-4xl mb-2">🌸</div>
+                                <div class="text-4xl mb-2">←</div>
                                 <button id="digit-3" class="w-16 h-16 bg-blue-500 text-white text-2xl font-bold rounded-lg hover:bg-blue-600 active:scale-95 transition">0</button>
                             </div>
                         </div>
@@ -875,8 +920,8 @@ async function AppInit() {
                         if (!digit0 || !digit1 || !digit2 || !digit3) return false;
                         
                         const code = digit0.textContent + digit1.textContent + digit2.textContent + digit3.textContent;
-                        // 正解は "1234" の例（変更可能）
-                        return code === '1234';
+                        // 正解は "1219" の例（変更可能）
+                        return code === '1219';
                     },
                     spawnObjects: [
                         {
@@ -884,9 +929,9 @@ async function AppInit() {
                             view: 'right',
                             x: 80,
                             y: 41,
-                            width: 60,
+                            width: 45,
                             height: 60,
-                            imgSrc: './images/nazo.png',
+                            imgSrc: './images/pen.png',
                             description: 'シンボルパズルから得たペン。',
                             isCollectible: true,
                             maxUsageCount: 1
@@ -902,9 +947,9 @@ async function AppInit() {
                 view: 'right',
                 x: 60,
                 y: 30,
-                width: 30,
+                width: 70,
                 height: 30,
-                imgSrc: './images/nazo.png',
+                imgSrc: './images/tuki-osaihu.png',
                 description: '月の模様があるお財布．中に免許証が入っている．名前:月おじさん...',
                 isCollectible: true,
                 maxUsageCount: 1,
@@ -917,10 +962,10 @@ async function AppInit() {
                 view: 'right',
                 x: 50,
                 y: 60,
-                width: 80,
-                height: 60,
-                imgSrc: './images/nazo.png',
-                description: '謎の台座．右の状態が太陽のとき，アクリル絵を置けそうだ．',
+                width: 70,
+                height: 70,
+                imgSrc: './images/daiza.png',
+                description: '謎の台座．右の状態が太陽のとき，ガラスブロックを置けそうだ．',
                 isCollectible: false,
                 maxUsageCount: Infinity,
                 onClick: () => {
@@ -932,27 +977,27 @@ async function AppInit() {
                         return;
                     }
                     if (gameManager.rightSunlightReflected) {
-                        uiManager.updateStatus('すでにアクリル絵が設置され，光は反射している。');
+                        uiManager.updateStatus('すでにガラスブロックが設置され，光は反射している。');
                         return;
                     }
                     if (!selected || selected.id !== 'akuriru-picture') {
                         const content = `
                             <div class="p-4">
                                 <h3 class="text-xl font-bold mb-4">台座</h3>
-                                <img src="./images/nazo.png" alt="台座" class="w-48 h-48 mx-auto mb-4 rounded">
-                                <p class="text-gray-700">太陽光が差し込んでいる。アクリル絵を置けば反射できそうだ。</p>
+                                <img src="./images/daiza.png" alt="台座" class="w-48 h-48 mx-auto mb-4 rounded">
+                                <p class="text-gray-700">太陽光が差し込んでいる。ガラスブロックを置けば反射できそうだ。</p>
                             </div>
                         `;
                         uiManager.showPuzzle(content);
                         return;
                     }
 
-                    // アクリル絵を設置 → 反射発生
+                    // ガラスブロックを設置 → 反射発生
                     if (typeof inv.removeItemById === 'function') inv.removeItemById('akuriru-picture');
                     if (gameManager && gameManager.usedItems) gameManager.usedItems.add('akuriru-picture');
                     if (typeof inv.clearSelection === 'function') inv.clearSelection();
                     gameManager.rightSunlightReflected = true;
-                    uiManager.updateStatus('アクリル絵を台座に設置した。太陽光が反射して氷の壁に当たった！');
+                    uiManager.updateStatus('ガラスブロックを台座に設置した。太陽光が反射して氷の壁に当たった！');
 
                     // サンライト演出は残す（残光として画面に保持）
 
@@ -993,7 +1038,7 @@ async function AppInit() {
                                 y: 30,
                                 width: 48,
                                 height: 48,
-                                imgSrc: './images/nazo.png',
+                                imgSrc: './images/escape-key.png',
                                 description: '氷から取り出せるようになった鍵。',
                                 isCollectible: true,
                                 maxUsageCount: 1,
@@ -1015,9 +1060,9 @@ async function AppInit() {
                 view: 'right',
                 x: 30,
                 y: 30,
-                width: 160,
-                height: 160,
-                imgSrc: './images/nazo.png',
+                width: 200,
+                height: 141,
+                imgSrc: './images/ice-wall.png',
                 description: '巨大な氷の壁．何かで溶かせそうだ．',
                 isCollectible: false,
                 maxUsageCount: Infinity,
