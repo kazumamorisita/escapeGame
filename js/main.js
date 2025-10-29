@@ -92,8 +92,45 @@ async function AppInit() {
     document.getElementById('new-game-button').addEventListener('click', () => gameManager.startNewGame());
     domElements.continueButton.addEventListener('click', () => gameManager.continueGame());
 
+    function triggerRightSunlightAnimationIfNeeded() {
+        try {
+            if (gameManager.rightRoomState === 'sun' && !gameManager.rightSunlightReflected) {
+                // オーバーレイがなければ追加
+                if (!gameObjectManager.objects.has('sunlight-to-daiza')) {
+                    gameObjectManager.addObject({ id: 'sunlight-to-daiza', view: 'right', x: 85, y: 20, width: 360, height: 10,
+                        imgSrc: './images/nazo.png', description: '太陽光が台座に差し込んでいる。', isCollectible: false, maxUsageCount: Infinity });
+                }
+                // 右画面に来たタイミングで必ずアニメを走らせる（再生成せずスタイルだけ掛け直す）
+                if (window.styleSunBeam) window.styleSunBeam('sunlight-to-daiza', null, 'sun', true);
+            } else if (gameManager.rightSunlightReflected) {
+                // 反射済みなら両ビームを常時維持、右入室時に見た目適用
+                if (!gameObjectManager.objects.has('sun-reflect-beam')) {
+                    gameObjectManager.addObject({ id: 'sun-reflect-beam', view: 'right', x: 40, y: 45, width: 180, height: 10,
+                        imgSrc: './images/nazo.png', description: '反射した光が氷壁に当たっている。', isCollectible: false, maxUsageCount: Infinity });
+                }
+                if (window.styleSunBeam) window.styleSunBeam('sun-reflect-beam', null, 'reflect', false);
+                if (gameManager.rightRoomState === 'sun') {
+                    if (!gameObjectManager.objects.has('sunlight-to-daiza')) {
+                        gameObjectManager.addObject({ id: 'sunlight-to-daiza', view: 'right', x: 85, y: 20, width: 360, height: 10,
+                            imgSrc: './images/nazo.png', description: '太陽光が台座に差し込んでいる。', isCollectible: false, maxUsageCount: Infinity });
+                    }
+                    if (window.styleSunBeam) window.styleSunBeam('sunlight-to-daiza', null, 'sun', false);
+                } else {
+                    // 右が太陽以外なら元ビームは非表示（仕様に応じて変更可）
+                    gameObjectManager.removeObject('sunlight-to-daiza');
+                }
+            }
+        } catch (e) { console.error('triggerRightSunlightAnimationIfNeeded error', e); }
+    }
+
     document.getElementById('left-arrow').addEventListener('click', () => uiManager.changeView('left'));
-    document.getElementById('right-arrow').addEventListener('click', () => uiManager.changeView('right'));
+    document.getElementById('right-arrow').addEventListener('click', () => { uiManager.changeView('right'); triggerRightSunlightAnimationIfNeeded(); });
+    // リサイズ時もビームを再計算（右ビュー表示中のみ）
+    window.addEventListener('resize', () => {
+        if (uiManager && uiManager.currentView === 'right') {
+            try { triggerRightSunlightAnimationIfNeeded(); } catch {}
+        }
+    });
     // domElements.keyButton（鍵ボタン）は削除されたのでイベントリスナも不要
     // 脱出ドアボタンのクリックで unlockDoor を呼ぶ（mysterious-box選択時のみロック解除）
     domElements.escapeDoor.addEventListener('click', () => gameManager.unlockDoor());
@@ -104,23 +141,98 @@ async function AppInit() {
     function registerInitialObjects() {
         // 下に行くほど最上面に表示される
 
+    // ビーム（太陽光/反射）オーバーレイのスタイル適用ヘルパー
+    function styleSunBeam(id, _angleIgnored, theme = 'sun', animate = true) {
+            // theme: 'sun' = 入射（右上→台座中心） / 'reflect' = 反射（台座中心→氷壁中心）
+            const entry = gameObjectManager.objects.get(id);
+            if (!entry) return;
+
+            const container = entry.container;
+            // 表示層設定と既存要素の整理
+            container.style.zIndex = '50';
+            container.style.pointerEvents = 'none';
+            const img = container.querySelector('img');
+            if (img) img.style.display = 'none';
+            Array.from(container.children).forEach(ch => { if (ch.dataset && ch.dataset.beam === '1') ch.remove(); });
+
+            // 参照要素を取得
+            const rightView = container.parentElement; // このビームは right に配置されている前提
+            if (!rightView) return;
+
+            const daizaEntry = gameObjectManager.objects.get('daiza');
+            const iceEntry = gameObjectManager.objects.get('ice-wall');
+            if (!daizaEntry) return; // 台座は必須
+
+            const viewRect = rightView.getBoundingClientRect();
+            const daizaRect = daizaEntry.container.getBoundingClientRect();
+            const daizaCenter = { x: daizaRect.left + daizaRect.width / 2 - viewRect.left, y: daizaRect.top + daizaRect.height / 2 - viewRect.top };
+
+            // from/to を決定
+            let from = null, to = null;
+            if (theme === 'sun') {
+                // 右上から入射して台座中心へ（対角に降りてくる見た目）。少し内側からにしておく。
+                from = { x: viewRect.width - 8, y: Math.max(8, viewRect.height * 0.1) };
+                to = daizaCenter;
+            } else {
+                // 反射: 台座中心 → 氷壁中心
+                if (!iceEntry) return;
+                const iceRect = iceEntry.container.getBoundingClientRect();
+                const iceCenter = { x: iceRect.left + iceRect.width / 2 - viewRect.left, y: iceRect.top + iceRect.height / 2 - viewRect.top };
+                from = daizaCenter;
+                to = iceCenter;
+            }
+
+            const dx = to.x - from.x;
+            const dy = to.y - from.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const angleDeg = Math.atan2(dy, dx) * 180 / Math.PI;
+
+            // コンテナを『from』の位置・長さ・角度に合わせて再レイアウト
+            container.style.left = `${from.x}px`;
+            container.style.top = `${from.y}px`;
+            container.style.width = `${dist}px`;
+            const thickness = 10; // px
+            container.style.height = `${thickness}px`;
+            container.style.transformOrigin = '0% 50%'; // 左端・中央
+            container.style.transform = `translate(0, -50%) rotate(${angleDeg}deg)`;
+
+            // ビーム本体（横方向に伸びる）
+            const line = document.createElement('div');
+            line.style.position = 'absolute';
+            line.style.left = '0';
+            line.style.top = '50%';
+            line.style.height = '100%';
+            line.style.width = '0';
+            line.style.transform = 'translateY(-50%)';
+            line.style.borderRadius = '9999px';
+            line.style.opacity = '0.95';
+
+            if (theme === 'sun') {
+                line.style.background = 'linear-gradient(90deg, rgba(255,243,133,0.0) 0%, rgba(255,243,133,0.8) 30%, rgba(255,255,255,0.95) 70%, rgba(255,255,255,0.2) 100%)';
+                line.style.boxShadow = '0 0 12px rgba(255,240,150,0.9), 0 0 24px rgba(255,240,150,0.6)';
+            } else {
+                line.style.background = 'linear-gradient(90deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.85) 40%, rgba(255,255,255,0.6) 100%)';
+                line.style.boxShadow = '0 0 10px rgba(255,255,255,0.9), 0 0 18px rgba(200,220,255,0.6)';
+            }
+
+            line.dataset.beam = '1';
+            container.appendChild(line);
+
+            if (animate) {
+                requestAnimationFrame(() => {
+                    line.style.transition = 'width 700ms ease-out';
+                    line.style.width = '100%';
+                });
+            } else {
+                line.style.width = '100%';
+            }
+    }
+    // グローバル公開して他のイベントからも呼べるようにする
+    try { window.styleSunBeam = styleSunBeam; } catch {}
+
         // --- オブジェクト(front) ---
 
-        //脱出用の箱
-        if (!gameObjectManager.objects.has('mysterious-box')) {
-            gameObjectManager.addObject({
-                id: 'mysterious-box',
-                view: 'front',
-                x: 60,
-                y: 55,
-                width: 96,
-                height: 96,
-                imgSrc: './images/nazo.png',
-                description: '不思議な箱です。鍵がかかっているようです。',
-                isCollectible: true,
-                    maxUsageCount: 1,
-            });
-        }
+        
 
         // シール配置パズル
         if (!gameObjectManager.objects.has('seal-puzzle')) {
@@ -257,6 +369,21 @@ async function AppInit() {
                             if (rightStatus) {
                                 rightStatus.textContent = gameManager.rightRoomState === 'sun' ? '☀️ 太陽' : 
                                                           gameManager.rightRoomState === 'moon' ? '🌙 月' : '未設定';
+                            }
+
+                            // 右のサンライト演出を更新
+                            if (gameObjectManager) {
+                                if (gameManager.rightRoomState === 'sun' && !gameManager.rightSunlightReflected) {
+                                    if (!gameObjectManager.objects.has('sunlight-to-daiza')) {
+                                        gameObjectManager.addObject({
+                                            id: 'sunlight-to-daiza', view: 'right', x: 85, y: 20, width: 360, height: 10,
+                                            imgSrc: './images/nazo.png', description: '太陽光が台座に差し込んでいる。', isCollectible: false, maxUsageCount: Infinity
+                                        });
+                                        setTimeout(() => { try { if (window.styleSunBeam) window.styleSunBeam('sunlight-to-daiza', null, 'sun', true); } catch {} }, 0);
+                                    }
+                                } else {
+                                    gameObjectManager.removeObject('sunlight-to-daiza');
+                                }
                             }
                             
                             // 保存
@@ -775,14 +902,147 @@ async function AppInit() {
                 view: 'right',
                 x: 60,
                 y: 30,
-                width: 160,
-                height: 160,
+                width: 30,
+                height: 30,
                 imgSrc: './images/nazo.png',
                 description: '月の模様があるお財布．中に免許証が入っている．名前:月おじさん...',
                 isCollectible: true,
                 maxUsageCount: 1,
             });
         }
+
+        if (!gameObjectManager.objects.has('daiza')) {
+            gameObjectManager.addObject({
+                id: 'daiza',
+                view: 'right',
+                x: 50,
+                y: 60,
+                width: 80,
+                height: 60,
+                imgSrc: './images/nazo.png',
+                description: '謎の台座．右の状態が太陽のとき，アクリル絵を置けそうだ．',
+                isCollectible: false,
+                maxUsageCount: Infinity,
+                onClick: () => {
+                    const inv = gameManager.inventoryManager;
+                    const selected = inv && typeof inv.getSelectedItem === 'function' ? inv.getSelectedItem() : null;
+                    
+                    if (gameManager.rightRoomState !== 'sun') {
+                        uiManager.updateStatus('今は太陽光が差し込んでいない。台座に何も起きない。');
+                        return;
+                    }
+                    if (gameManager.rightSunlightReflected) {
+                        uiManager.updateStatus('すでにアクリル絵が設置され，光は反射している。');
+                        return;
+                    }
+                    if (!selected || selected.id !== 'akuriru-picture') {
+                        const content = `
+                            <div class="p-4">
+                                <h3 class="text-xl font-bold mb-4">台座</h3>
+                                <img src="./images/nazo.png" alt="台座" class="w-48 h-48 mx-auto mb-4 rounded">
+                                <p class="text-gray-700">太陽光が差し込んでいる。アクリル絵を置けば反射できそうだ。</p>
+                            </div>
+                        `;
+                        uiManager.showPuzzle(content);
+                        return;
+                    }
+
+                    // アクリル絵を設置 → 反射発生
+                    if (typeof inv.removeItemById === 'function') inv.removeItemById('akuriru-picture');
+                    if (gameManager && gameManager.usedItems) gameManager.usedItems.add('akuriru-picture');
+                    if (typeof inv.clearSelection === 'function') inv.clearSelection();
+                    gameManager.rightSunlightReflected = true;
+                    uiManager.updateStatus('アクリル絵を台座に設置した。太陽光が反射して氷の壁に当たった！');
+
+                    // サンライト演出は残す（残光として画面に保持）
+
+                    // 反射ビーム演出（台座→氷壁）
+                    if (!gameObjectManager.objects.has('sun-reflect-beam')) {
+                        gameObjectManager.addObject({
+                            id: 'sun-reflect-beam', view: 'right',
+                            x: 40,  // 台座(50,60) と 氷壁(30,30) の中点近辺
+                            y: 45,
+                            width: 180,
+                            height: 10,
+                            imgSrc: './images/nazo.png',
+                            description: '反射した光が氷壁に当たっている。',
+                            isCollectible: false,
+                            maxUsageCount: Infinity,
+                        });
+                        setTimeout(() => {
+                            try {
+                                if (window.styleSunBeam) {
+                                    window.styleSunBeam('sun-reflect-beam', null, 'reflect', true);
+                                    // 念のため入射ビームも再適用（一時的なスタイル崩れ対策）
+                                    if (gameObjectManager.objects.has('sunlight-to-daiza')) {
+                                        window.styleSunBeam('sunlight-to-daiza', null, 'sun', false);
+                                    }
+                                }
+                            } catch {}
+                        }, 0);
+                        // 反射ビームは画面に残す（自動で消さない）
+                    }
+
+                    // 氷の壁に鍵を出現させる（演出後に少し遅延）
+                    setTimeout(() => {
+                        if (!gameObjectManager.objects.has('escape-key')) {
+                            gameObjectManager.addObject({
+                                id: 'escape-key',
+                                view: 'right',
+                                x: 30,
+                                y: 30,
+                                width: 48,
+                                height: 48,
+                                imgSrc: './images/nazo.png',
+                                description: '氷から取り出せるようになった鍵。',
+                                isCollectible: true,
+                                maxUsageCount: 1,
+                            });
+                        }
+                    }, 400);
+
+                    // 保存
+                    if (gameManager && typeof gameManager.saveGameState === 'function') {
+                        gameManager.saveGameState().catch(e => console.error('save error', e));
+                    }
+                }
+            });
+        }
+
+        if (!gameObjectManager.objects.has('ice-wall')) {
+            gameObjectManager.addObject({
+                id: 'ice-wall',
+                view: 'right',
+                x: 30,
+                y: 30,
+                width: 160,
+                height: 160,
+                imgSrc: './images/nazo.png',
+                description: '巨大な氷の壁．何かで溶かせそうだ．',
+                isCollectible: false,
+                maxUsageCount: Infinity,
+            });
+        }
+
+        // 右=太陽 かつ まだ反射前ならサンライト演出を追加（右上→台座へ斜めに）
+        if (gameManager.rightRoomState === 'sun' && !gameManager.rightSunlightReflected && !gameObjectManager.objects.has('sunlight-to-daiza')) {
+            gameObjectManager.addObject({
+                id: 'sunlight-to-daiza',
+                view: 'right',
+                x: 85,
+                y: 20,
+                width: 600,
+                height: 10,
+                imgSrc: './images/nazo.png',
+                description: '太陽光が台座に差し込んでいる。',
+                isCollectible: false,
+                maxUsageCount: Infinity
+            });
+            // 現在のビューが right ならアニメ、そうでなければ静止表示（右に来たら再アニメ）
+            const animate = (uiManager && uiManager.currentView === 'right');
+            setTimeout(() => { try { if (window.styleSunBeam) window.styleSunBeam('sunlight-to-daiza', null, 'sun', animate); } catch {} }, 0);
+        }
+
     }
     // 初回起動時に初期オブジェクトを登録
     registerInitialObjects();

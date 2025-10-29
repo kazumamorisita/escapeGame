@@ -15,7 +15,8 @@ export class GameObjectManager {
             description = '',
             isCollectible = false,
             maxUsageCount = Infinity, // デフォルトは無限回使用可能
-            onClick = null 
+            onClick = null,
+            rotate = 0
         } = options;
 
         if (!this.views[view]) throw new Error(`view "${view}" not found`);
@@ -39,6 +40,9 @@ export class GameObjectManager {
         container.style.width = typeof width === 'number' ? `${width}px` : width;
         container.style.height = typeof height === 'number' ? `${height}px` : height;
         container.style.transform = 'translate(-50%, -50%)';
+        if (rotate && !isNaN(rotate)) {
+            container.style.transform += ` rotate(${rotate}deg)`;
+        }
 
         const img = document.createElement('img');
         img.src = imgSrc;

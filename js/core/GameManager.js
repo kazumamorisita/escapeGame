@@ -11,8 +11,9 @@ export class GameManager {
         this.hasSaveData = false;
         this.usedItems = new Set(); // 使用済みアイテムを追跡
         this.objectUsageCounts = new Map(); // オブジェクトIDごとの使用回数を追跡
-        this.rightRoomState = null; // 右部屋の状態: 'sun', 'moon', null
-        this.leftRoomState = null;  // 左部屋の状態: 'sun', 'moon', null
+    this.rightRoomState = null; // 右部屋の状態: 'sun', 'moon', null
+    this.leftRoomState = null;  // 左部屋の状態: 'sun', 'moon', null
+    this.rightSunlightReflected = false; // 右で日光が反射済みか
     }
 
     async saveGameState() {
@@ -33,6 +34,7 @@ export class GameManager {
                 objectUsageCounts: usageCounts, // オブジェクトごとの使用回数を保存
                 rightRoomState: this.rightRoomState, // 右部屋の状態
                 leftRoomState: this.leftRoomState,   // 左部屋の状態
+                rightSunlightReflected: this.rightSunlightReflected, // 右の日光反射状態
                 updatedAt: new Date().toISOString()
             };
             await setDoc(ref, state);
@@ -62,9 +64,10 @@ export class GameManager {
                 this.objectUsageCounts = new Map(Object.entries(data.objectUsageCounts));
             }
 
-            // 部屋の状態を復元
+            // 部屋とパズルの状態を復元
             this.rightRoomState = data.rightRoomState || null;
             this.leftRoomState = data.leftRoomState || null;
+            this.rightSunlightReflected = !!data.rightSunlightReflected;
 
             // オブジェクトの状態を管理
             if (this.objectsManager) {
@@ -130,6 +133,35 @@ export class GameManager {
                         }
                     }
 
+                    // 右のサンライト反射ギミックの復元
+                    if (this.rightSunlightReflected) {
+                        const hasEscapeKey = Array.isArray(data.collectedItems) && data.collectedItems.some(item => item && item.id === 'escape-key');
+                        if (!hasEscapeKey && !this.objectsManager.objects.has('escape-key')) {
+                            this.objectsManager.addObject({
+                                id: 'escape-key', view: 'right', x: 30, y: 30, width: 48, height: 48,
+                                imgSrc: './images/nazo.png',
+                                description: '氷の壁から取り出せるようになった鍵。',
+                                isCollectible: true, maxUsageCount: 1
+                            });
+                        }
+                        // 反射ビームを常時表示（right 入室時に見た目はスタイルで適用）
+                        if (!this.objectsManager.objects.has('sun-reflect-beam')) {
+                            this.objectsManager.addObject({
+                                id: 'sun-reflect-beam', view: 'right', x: 40, y: 45, width: 180, height: 10,
+                                imgSrc: './images/nazo.png', description: '反射した光が氷壁に当たっている。',
+                                isCollectible: false, maxUsageCount: Infinity
+                            });
+                        }
+                        // 元のサンライトは right が太陽状態なら残す
+                        if (this.rightRoomState === 'sun' && !this.objectsManager.objects.has('sunlight-to-daiza')) {
+                            this.objectsManager.addObject({
+                                id: 'sunlight-to-daiza', view: 'right', x: 85, y: 20, width: 360, height: 10,
+                                imgSrc: './images/nazo.png', description: '太陽光が台座に差し込んでいる。',
+                                isCollectible: false, maxUsageCount: Infinity
+                            });
+                        }
+                    }
+
                     // 使用済みアイテムを画面から削除
                     this.usedItems.forEach(itemId => {
                         this.objectsManager.removeObject(itemId);
@@ -137,6 +169,27 @@ export class GameManager {
                     
                     // 左部屋のおじさんを状態に応じて更新
                     this.updateLeftRoomOzisan();
+
+                    // 右ビュー表示中であれば、ビームの見た目を即時再適用（Snapshot再生成で水平＆nazo.pngに戻るのを防ぐ）
+                    try {
+                        if (this.uiManager && this.uiManager.currentView === 'right' && typeof window !== 'undefined' && window.styleSunBeam) {
+                            const gom = this.objectsManager;
+                            if (this.rightSunlightReflected) {
+                                if (gom && gom.objects.has('sun-reflect-beam')) {
+                                    window.styleSunBeam('sun-reflect-beam', null, 'reflect', false);
+                                }
+                                if (this.rightRoomState === 'sun' && gom && gom.objects.has('sunlight-to-daiza')) {
+                                    window.styleSunBeam('sunlight-to-daiza', null, 'sun', false);
+                                }
+                            } else {
+                                if (this.rightRoomState === 'sun' && gom && gom.objects.has('sunlight-to-daiza')) {
+                                    window.styleSunBeam('sunlight-to-daiza', null, 'sun', false);
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.error('beam restyle after snapshot error', e);
+                    }
                 }
             }
         } else {
@@ -157,18 +210,18 @@ export class GameManager {
     // 脱出ドアクリック時の処理: mysterious-box選択時のみロック解除
     async unlockDoor() {
         const selectedItem = this.inventoryManager.getSelectedItem();
-        if (!this.isDoorUnlocked && selectedItem && selectedItem.id === 'mysterious-box') {
+        if (!this.isDoorUnlocked && selectedItem && selectedItem.id === 'escape-key') {
             this.isDoorUnlocked = true;
             this.uiManager.updateGameUI(true);
             this.uiManager.updateStatus('鍵を使ってドアのロックを解除しました！');
             // アイテムを消費（インベントリから削除）
-            this.inventoryManager.removeItemById('mysterious-box');
+            this.inventoryManager.removeItemById('escape-key');
             // オブジェクトも画面から消す
             if (this.objectsManager) {
-                this.objectsManager.removeObject('mysterious-box');
+                this.objectsManager.removeObject('escape-key');
             }
             // 使用済みアイテムとして記録
-            this.usedItems.add('mysterious-box');
+            this.usedItems.add('escape-key');
             this.inventoryManager.clearSelection();
             await this.saveGameState();
         } else if (!this.isDoorUnlocked) {
@@ -361,6 +414,7 @@ export class GameManager {
         // 部屋の状態をリセット
         this.rightRoomState = null;
         this.leftRoomState = null;
+    this.rightSunlightReflected = false;
         // インベントリを初期化
         if (this.inventoryManager) {
             try {
